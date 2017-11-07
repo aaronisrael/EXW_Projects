@@ -8,3 +8,4 @@ Het spel pong met 2 smartphones, waarbij je elk platform aanstuurt via geluid (w
 Aan de hand van de api van de lijn, wordt er data doorgestuurd en dat zouden we visualiseren op een kaart m.b.v. webGL. We spelen ook een geluid af telkens een tram of bus toekomt aan een halte, als de bus een laag nummer heeft zal het een lage toon geven, bij een hoog nummer een hoge toon (Web audio API).
 
 ## 3. 
+
