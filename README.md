@@ -10,3 +10,23 @@ Aan de hand van de api van de lijn, wordt er data doorgestuurd en dat zouden we 
 ## 3. Nuke 2780
 Een simple game om Noord-Korea te bombarderen, op de pc wordt er een kaart weergeven met jouw locatie. Op de gsm moet je de richting en kracht instellen om Noord-Korea weer great te maken. 
 
+# Richtlijnen
+
+## Welke Emoji te gebruiken? ❓
+
+Commit Type | Emoji
+----------  | -----
+Initial Commit | 🎉 Party Popper
+Version Tag | 🔖 Bookmark
+New Feature | ✨ Sparkles
+Bugfix | 🐛 Bug
+Security Fix | 🔒 Lock
+Refactoring | ♻️ Recycling Symbol
+Documentation | 📚 Books
+Performance | 🐎 Horse
+Design | 🎨 Artist Palette
+Writing bad code that needs to be improved. | 💩 Pile of Poo
+Removal | 🗑️ Wastebasket
+Deploying stuff | 🚀 Rocket
+Fixing typos | ✏️ Pencil
+Removing logs | 🔇 Mute
