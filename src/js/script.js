@@ -45,8 +45,7 @@ function setup()
 function createScene()
 {
   // set the scene size
-  const WIDTH = window.innerWidth,
-    HEIGHT = window.innerHeight;
+  const WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
 
   // set some camera attributes
   const VIEW_ANGLE = 50,
