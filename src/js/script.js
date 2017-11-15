@@ -342,11 +342,18 @@ const explodeAnimation = (x, y) => {
 
   }
 
-  const starsMaterial = new THREE.PointsMaterial({size: 2, color: 0xff0000});
+  const starsMaterial = new THREE.PointsMaterial({size: 1, color: 0xff0000, opacity: 1});
 
   const starField = new THREE.Points(starsGeometry, starsMaterial);
 
   scene.add(starField);
+
+  this.update = function() {
+    const star =  this.object.geometry.vertices;
+    star.y += 100;
+    star.x += 100;
+    star.z += 100;
+  };
 
   //const geometry = new THREE.Geometry();
 
@@ -386,16 +393,8 @@ function draw()
 {
   // draw THREE.JS scene
   renderer.render(scene, camera);
-
-  // let pCount = parts.length;
-  // while (pCount --) {
-  //   console.log(pCount);
-  //   parts[pCount].update();
-  // }
-  // loop draw function call
   requestAnimationFrame(draw);
 
-  //explodeAnimation();
   ballPhysics();
   paddlePhysics();
   playerPaddleMovement();
