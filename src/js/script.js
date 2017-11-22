@@ -521,8 +521,8 @@ const matchScoreCheck = () => {
   }
 };
 
-window.addEventListener(`keyup`, function(event) { Key.onKeyup(event); }, false);
-window.addEventListener(`keydown`, function(event) { Key.onKeydown(event); }, false);
+window.addEventListener(`keyup`, event => { Key.onKeyup(event); }, false);
+window.addEventListener(`keydown`, event => { Key.onKeydown(event); }, false);
 
 const Key = {
   _pressed: {},
@@ -531,15 +531,15 @@ const Key = {
   D: 40,
   SPACE: 32,
 
-  isDown: function(keyCode) {
+  isDown(keyCode) {
     return this._pressed[keyCode];
   },
 
-  onKeydown: function(event) {
+  onKeydown(event) {
     this._pressed[event.keyCode] = true;
   },
 
-  onKeyup: function(event) {
+  onKeyup(event) {
     delete this._pressed[event.keyCode];
   }
 };
