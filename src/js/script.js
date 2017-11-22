@@ -20,14 +20,13 @@ let score1 = 0, score2 = 0;
 const maxScore = 7;
 
 // set opponent reflexes (0 - easiest, 1 - hardest)
-const difficulty = 0.2;
+const difficulty = 0.1;
 
 // ------------------------------------- //
 // ------- GAME FUNCTIONS -------------- //
 // ------------------------------------- //
 
-function setup()
-{
+const setup = () => {
   // update the board to reflect the max score for match win
   document.querySelector(`.winnerBoard`).innerHTML = `First to ${  maxScore  } wins!`;
 
@@ -36,34 +35,29 @@ function setup()
   score2 = 0;
 
   // set up all the 3D objects in the scene
-  createScene();
+  createCamera();
+
 
   // and let's get cracking!
   draw();
-}
+};
 
-function createScene()
-{
+const createCamera = () => {
   // set the scene size
   const WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
 
   // set some camera attributes
-  const VIEW_ANGLE = 50,
-    ASPECT = WIDTH / HEIGHT,
-    NEAR = 0.1,
-    FAR = 10000;
+  const VIEW_ANGLE = 50;
+  const ASPECT = WIDTH / HEIGHT;
+  const NEAR = 0.1;
+  const FAR = 10000;
 
   const c = document.querySelector(`.Pong`);
 
   // create a WebGL renderer, camera
   // and a scene
   renderer = new THREE.WebGLRenderer();
-  camera =
-    new THREE.PerspectiveCamera(
-    VIEW_ANGLE,
-    ASPECT,
-    NEAR,
-    FAR);
+  camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
 
   scene = new THREE.Scene();
 
@@ -81,7 +75,7 @@ function createScene()
   c.appendChild(renderer.domElement);
 
   // set up the playing surface plane
-  const planeWidth = fieldWidth,
+  const tableWidth = fieldWidth,
     planeHeight = fieldHeight,
     planeQuality = 10;
 
@@ -121,7 +115,7 @@ function createScene()
   const plane = new THREE.Mesh(
 
     new THREE.PlaneGeometry(
-    planeWidth * 0.95,  // 95% of table width, since we want to show where the ball goes out-of-bounds
+    tableWidth * 0.95,  // 95% of table width, since we want to show where the ball goes out-of-bounds
     planeHeight,
     planeQuality,
     planeQuality),
@@ -134,7 +128,7 @@ function createScene()
   const table = new THREE.Mesh(
 
     new THREE.CubeGeometry(
-    planeWidth * 1.05,  // this creates the feel of a billiards table, with a lining
+    tableWidth * 1.05,  // this creates the feel of a billiards table, with a lining
     planeHeight * 1.03,
     100,        // an arbitrary depth, the camera can't see much of it anyway
     planeQuality,
@@ -227,53 +221,6 @@ function createScene()
   paddle1.position.z = paddleDepth;
   paddle2.position.z = paddleDepth;
 
-  // we iterate 10x (5x each side) to create pillars to show off shadows
-  // this is for the pillars on the left
-  // for (let i = 0;i < 5;i ++)
-  // {
-  //   const backdrop = new THREE.Mesh(
-  //
-  //     new THREE.CubeGeometry(
-  //     30,
-  //     30,
-  //     300,
-  //     1,
-  //     1,
-  //     1),
-  //
-  //     pillarMaterial);
-  //
-  //   backdrop.position.x = - 50 + i * 100;
-  //   backdrop.position.y = 230;
-  //   backdrop.position.z = - 30;
-  //   backdrop.castShadow = true;
-  //   backdrop.receiveShadow = true;
-  //   scene.add(backdrop);
-  // }
-  // we iterate 10x (5x each side) to create pillars to show off shadows
-  // this is for the pillars on the right
-  // for (let i = 0;i < 5;i ++)
-  // {
-  //   const backdrop = new THREE.Mesh(
-  //
-  //     new THREE.CubeGeometry(
-  //     30,
-  //     30,
-  //     300,
-  //     1,
-  //     1,
-  //     1),
-  //
-  //     pillarMaterial);
-  //
-  //   backdrop.position.x = - 50 + i * 100;
-  //   backdrop.position.y = - 230;
-  //   backdrop.position.z = - 30;
-  //   backdrop.castShadow = true;
-  //   backdrop.receiveShadow = true;
-  //   scene.add(backdrop);
-  // }
-
   // finally we finish by adding a ground plane
   // to show off pretty shadows
   const ground = new THREE.Mesh(
@@ -315,10 +262,9 @@ function createScene()
 
   // MAGIC SHADOW CREATOR DELUXE EDITION with Lights PackTM DLC
   renderer.shadowMapEnabled = true;
-}
+};
 
-function draw()
-{
+const draw = () => {
   // draw THREE.JS scene
   renderer.render(scene, camera);
   // loop draw function call
@@ -328,10 +274,9 @@ function draw()
   paddlePhysics();
   playerPaddleMovement();
   opponentPaddleMovement();
-}
+};
 
-function ballPhysics()
-{
+const ballPhysics = () => {
   // if ball goes off the 'left' side (Player's side)
   if (ball.position.x <= - fieldWidth / 2)
   {
@@ -382,11 +327,10 @@ function ballPhysics()
   {
     ballDirY = - ballSpeed * 2;
   }
-}
+};
 
 // Handles CPU paddle movement and logic
-function opponentPaddleMovement()
-{
+const opponentPaddleMovement = () => {
   // Lerp towards the ball on the y plane
   paddle2DirY = (ball.position.y - paddle2.position.y) * difficulty;
 
@@ -414,12 +358,11 @@ function opponentPaddleMovement()
   // stretching is done when paddle touches side of table and when paddle hits ball
   // by doing this here, we ensure paddle always comes back to default size
   paddle2.scale.y += (1 - paddle2.scale.y) * 0.2;
-}
+};
 
 
 // Handles player's paddle movement
-function playerPaddleMovement()
-{
+const playerPaddleMovement = () => {
   // move left
   if (Key.isDown(Key.A))
   {
@@ -464,11 +407,10 @@ function playerPaddleMovement()
   paddle1.scale.y += (1 - paddle1.scale.y) * 0.2;
   paddle1.scale.z += (1 - paddle1.scale.z) * 0.2;
   paddle1.position.y += paddle1DirY;
-}
+};
 
 // Handles paddle collision logic
-function paddlePhysics()
-{
+const paddlePhysics = () => {
   // PLAYER PADDLE LOGIC
 
   // if ball is aligned with paddle1 on x plane
@@ -522,10 +464,9 @@ function paddlePhysics()
       }
     }
   }
-}
+};
 
-function resetBall(loser)
-{
+const resetBall = loser => {
   // position the ball in the center of the table
   ball.position.x = 0;
   ball.position.y = 0;
@@ -543,12 +484,11 @@ function resetBall(loser)
 
   // set the ball to move +ve in y plane (towards left from the camera)
   ballDirY = 1;
-}
+};
 
 let bounceTime = 0;
 // checks if either player or opponent has reached 7 points
-function matchScoreCheck()
-{
+const matchScoreCheck = () => {
   // if player has 7 points
   if (score1 >= maxScore)
   {
@@ -579,7 +519,7 @@ function matchScoreCheck()
     paddle2.scale.z = 2 + Math.abs(Math.sin(bounceTime * 0.1)) * 10;
     paddle2.scale.y = 2 + Math.abs(Math.sin(bounceTime * 0.05)) * 10;
   }
-}
+};
 
 window.addEventListener(`keyup`, function(event) { Key.onKeyup(event); }, false);
 window.addEventListener(`keydown`, function(event) { Key.onKeydown(event); }, false);
