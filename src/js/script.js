@@ -1,12 +1,20 @@
 const THREE = require(`three`);
 
+import Colors from './objects/lib/Colors';
+import KeyPressed from './objects/lib/KeyPressed';
+import Paddle from './objects/Paddle';
+import Materials from './objects/lib/Materials';
+import Ball from './objects/Ball';
+import Ground from './objects/Ground';
+import Field from './objects/Field';
+
 let renderer, scene, camera, pointLight, spotLight;
 
 // field variables
 const fieldWidth = 400, fieldHeight = 200;
 
 // paddle variables
-let paddleWidth, paddleHeight, paddleDepth, paddleQuality;
+let paddleWidth, paddleHeight, paddleDepth;
 let paddle1DirY = 0, paddle2DirY = 0;
 const paddleSpeed = 3;
 
@@ -16,11 +24,11 @@ let ballDirX = 1, ballDirY = 1, ballSpeed = 2;
 
 // game-related variables
 let score1 = 0, score2 = 0;
-// you can change this to any positive whole number
 const maxScore = 7;
 
-// set opponent reflexes (0 - easiest, 1 - hardest)
+// set opponent difficulty
 const difficulty = 0.1;
+
 
 // ------------------------------------- //
 // ------- GAME FUNCTIONS -------------- //
@@ -34,16 +42,15 @@ const setup = () => {
   score1 = 0;
   score2 = 0;
 
-  // set up all the 3D objects in the scene
+  // set up all the objects in the scene
   createCamera();
+  createTable();
+  lights();
 
-
-  // and let's get cracking!
   draw();
 };
 
 const createCamera = () => {
-  // set the scene size
   const WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
 
   // set some camera attributes
@@ -54,18 +61,16 @@ const createCamera = () => {
 
   const c = document.querySelector(`.Pong`);
 
-  // create a WebGL renderer, camera
+  // create a renderer, camera
   // and a scene
   renderer = new THREE.WebGLRenderer();
   camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
-
   scene = new THREE.Scene();
 
   // add the camera to the scene
   scene.add(camera);
 
   // set a default position for the camera
-  // not doing this somehow messes up shadow rendering
   camera.position.z = 320;
 
   // start the renderer
@@ -73,145 +78,46 @@ const createCamera = () => {
 
   // attach the render-supplied DOM element
   c.appendChild(renderer.domElement);
+};
 
+const createTable = () => {
   // set up the playing surface plane
   const tableWidth = fieldWidth,
     planeHeight = fieldHeight,
     planeQuality = 10;
 
-  // create the paddle1's material
-  const paddle1Material =
-    new THREE.MeshLambertMaterial(
-      {
-        color: 0x1B32C0
-      });
-  // create the paddle2's material
-  const paddle2Material =
-    new THREE.MeshLambertMaterial(
-      {
-        color: 0xFF4045
-      });
-  // create the plane's material
-  const planeMaterial =
-    new THREE.MeshLambertMaterial(
-      {
-        color: 0x4BD121
-      });
-  // create the table's material
-  const tableMaterial =
-    new THREE.MeshLambertMaterial(
-      {
-        color: 0x111111
-      });
-  // create the ground's material
-  const groundMaterial =
-    new THREE.MeshLambertMaterial(
-      {
-        color: 0x888888
-      });
+  const field = new Field(tableWidth, planeHeight, planeQuality);
 
-
-  // create the playing surface plane
-  const plane = new THREE.Mesh(
-
-    new THREE.PlaneGeometry(
-    tableWidth * 0.95,  // 95% of table width, since we want to show where the ball goes out-of-bounds
-    planeHeight,
-    planeQuality,
-    planeQuality),
-
-    planeMaterial);
-
-  scene.add(plane);
-  plane.receiveShadow = true;
-
-  const table = new THREE.Mesh(
-
-    new THREE.CubeGeometry(
-    tableWidth * 1.05,  // this creates the feel of a billiards table, with a lining
-    planeHeight * 1.03,
-    100,        // an arbitrary depth, the camera can't see much of it anyway
-    planeQuality,
-    planeQuality,
-    1),
-
-    tableMaterial);
-  table.position.z = - 51;  // we sink the table into the ground by 50 units. The extra 1 is so the plane can be seen
-  scene.add(table);
-  table.receiveShadow = true;
-
-  // // set up the sphere vars
-  // lower 'segment' and 'ring' values will increase performance
-  const radius = 5,
-    segments = 6,
-    rings = 6;
-
-  // // create the sphere's material
-  const sphereMaterial =
-    new THREE.MeshLambertMaterial(
-      {
-        color: 0xD43001
-      });
+  scene.add(field);
+  field.receiveShadow = true;
 
   // Create a ball with sphere geometry
-  ball = new THREE.Mesh(
+  const RADIUS = 5;
+  const SEGMENTS = 6;
+  const RINGS = 6;
 
-    new THREE.SphereGeometry(
-    radius,
-    segments,
-    rings),
+  ball = new Ball(RADIUS, SEGMENTS, RINGS);
 
-    sphereMaterial);
-
-  // // add the sphere to the scene
+  // add the sphere to the scene
   scene.add(ball);
 
   ball.position.x = 0;
   ball.position.y = 0;
   // set ball above the table surface
-  ball.position.z = radius;
+  ball.position.z = RADIUS;
   ball.receiveShadow = true;
   ball.castShadow = true;
 
-  // // set up the paddle vars
+  // set up the paddle vars
   paddleWidth = 10;
   paddleHeight = 30;
   paddleDepth = 10;
-  paddleQuality = 1;
 
-  paddle1 = new THREE.Mesh(
+  paddle1 = new Paddle(paddleWidth, paddleHeight, paddleDepth, Materials.paddle1Material());
+  paddle2 = new Paddle(paddleWidth, paddleHeight, paddleDepth, Materials.paddle2Material());
 
-    new THREE.CubeGeometry(
-    paddleWidth,
-    paddleHeight,
-    paddleDepth,
-    paddleQuality,
-    paddleQuality,
-    paddleQuality),
-
-    paddle1Material);
-
-  // // add the sphere to the scene
   scene.add(paddle1);
-  paddle1.receiveShadow = true;
-  paddle1.castShadow = true;
-
-  paddle2 = new THREE.Mesh(
-
-    new THREE.CubeGeometry(
-    paddleWidth,
-    paddleHeight,
-    paddleDepth,
-    paddleQuality,
-    paddleQuality,
-    paddleQuality),
-
-    paddle2Material);
-
-  // // add the sphere to the scene
   scene.add(paddle2);
-  paddle2.receiveShadow = true;
-  paddle2.castShadow = true;
 
   // set paddles on each side of the table
   paddle1.position.x = - fieldWidth / 2 + paddleWidth;
@@ -223,25 +129,14 @@ const createCamera = () => {
 
   // finally we finish by adding a ground plane
   // to show off pretty shadows
-  const ground = new THREE.Mesh(
-
-    new THREE.CubeGeometry(
-    1000,
-    1000,
-    3,
-    1,
-    1,
-    1),
-
-    groundMaterial);
+  const ground = new Ground();
     // set ground to arbitrary z position to best show off shadowing
-  ground.position.z = - 132;
-  ground.receiveShadow = true;
-  scene.add(ground);
 
-  // // create a point light
-  pointLight =
-    new THREE.PointLight(0xF8D898);
+  scene.add(ground);
+};
+
+const lights = () => {
+  pointLight = new THREE.PointLight(Colors.yellowLight);
 
   // set its position
   pointLight.position.x = - 1000;
@@ -254,7 +149,7 @@ const createCamera = () => {
 
   // add a spot light
   // this is important for casting shadows
-  spotLight = new THREE.SpotLight(0xF8D898);
+  spotLight = new THREE.SpotLight(Colors.yellowLight);
   spotLight.position.set(0, 0, 460);
   spotLight.intensity = 1.5;
   spotLight.castShadow = true;
@@ -364,7 +259,7 @@ const opponentPaddleMovement = () => {
 // Handles player's paddle movement
 const playerPaddleMovement = () => {
   // move left
-  if (Key.isDown(Key.A))
+  if (KeyPressed.isDown(KeyPressed.A))
   {
     // if paddle is not touching the side of table
     // we move
@@ -381,7 +276,7 @@ const playerPaddleMovement = () => {
     }
   }
   // move right
-  else if (Key.isDown(Key.D))
+  else if (KeyPressed.isDown(KeyPressed.D))
   {
     // if paddle is not touching the side of table
     // we move
@@ -403,7 +298,6 @@ const playerPaddleMovement = () => {
     // stop the paddle
     paddle1DirY = 0;
   }
-
   paddle1.scale.y += (1 - paddle1.scale.y) * 0.2;
   paddle1.scale.z += (1 - paddle1.scale.z) * 0.2;
   paddle1.position.y += paddle1DirY;
@@ -470,7 +364,6 @@ const resetBall = loser => {
   // position the ball in the center of the table
   ball.position.x = 0;
   ball.position.y = 0;
-
   // if player lost the last point, we send the ball to opponent
   if (loser === 1)
   {
@@ -481,7 +374,6 @@ const resetBall = loser => {
   {
     ballDirX = 1;
   }
-
   // set the ball to move +ve in y plane (towards left from the camera)
   ballDirY = 1;
 };
@@ -521,27 +413,7 @@ const matchScoreCheck = () => {
   }
 };
 
-window.addEventListener(`keyup`, event => { Key.onKeyup(event); }, false);
-window.addEventListener(`keydown`, event => { Key.onKeydown(event); }, false);
-
-const Key = {
-  _pressed: {},
-
-  A: 38,
-  D: 40,
-  SPACE: 32,
-
-  isDown(keyCode) {
-    return this._pressed[keyCode];
-  },
-
-  onKeydown(event) {
-    this._pressed[event.keyCode] = true;
-  },
-
-  onKeyup(event) {
-    delete this._pressed[event.keyCode];
-  }
-};
+window.addEventListener(`keyup`, event => { KeyPressed.onKeyup(event); }, false);
+window.addEventListener(`keydown`, event => { KeyPressed.onKeydown(event); }, false);
 
 setup();
