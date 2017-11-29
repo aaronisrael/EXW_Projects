@@ -2,6 +2,8 @@ const THREE = require(`three`);
 
 let renderer, scene, camera, pointLight, spotLight;
 
+//const player1 = THREE.ImageUtils.loadTexture(`assets/img/player1.png`);
+
 // field variables
 const fieldWidth = 400, fieldHeight = 200;
 
@@ -23,13 +25,14 @@ const maxScore = 7;
 const difficulty = 0.2;
 
 // particle variables
-//const movementSpeed = 80;
-//const totalObjects = 1000;
+const movementSpeed = 20;
+const totalObjects = 1000;
 //const objectSize = 10;
-//const sizeRandomness = 4000;
+const sizeRandomness = 40000;
 //const colors = [0xFF0FFF, 0xCCFF00, 0xFF000F, 0x996600, 0xFFFFFF];
 /////////////////////////////////
 const parts = [];
+const dirs = [];
 
 // ------------------------------------- //
 // ------- GAME FUNCTIONS -------------- //
@@ -66,7 +69,7 @@ function createScene()
 
   // create a WebGL renderer, camera
   // and a scene
-  renderer = new THREE.WebGLRenderer();
+  renderer = new THREE.WebGLRenderer({alpha: true});
   camera =
     new THREE.PerspectiveCamera(
     VIEW_ANGLE,
@@ -98,9 +101,11 @@ function createScene()
 
   // create the paddle1's material
   const paddle1Material =
-    new THREE.MeshLambertMaterial(
+    new THREE.MeshPhongMaterial(
       {
-        color: 0x1B32C0
+        color: 0xff00ff,
+        // map: player1,
+        transparent: true
       });
   // create the paddle2's material
   const paddle2Material =
@@ -112,19 +117,19 @@ function createScene()
   const planeMaterial =
     new THREE.MeshLambertMaterial(
       {
-        color: 0x4BD121
+        color: 0x000000
       });
   // create the table's material
   const tableMaterial =
     new THREE.MeshLambertMaterial(
       {
-        color: 0x111111
+        color: 0x000000
       });
   // create the ground's material
   const groundMaterial =
     new THREE.MeshLambertMaterial(
       {
-        color: 0x888888
+        color: 0x000000
       });
 
 
@@ -332,28 +337,28 @@ const explodeAnimation = (x, y) => {
 
   const starsGeometry = new THREE.Geometry();
 
-  for (let i = 0;i < 1000;i ++) {
+  for (let i = 0;i < totalObjects;i ++) {
     const star = new THREE.Vector3();
     star.x = x + THREE.Math.randFloatSpread(100);
     star.y = y + THREE.Math.randFloatSpread(100);
     star.z = THREE.Math.randFloatSpread(100);
 
     starsGeometry.vertices.push(star);
+    dirs.push({x: (Math.random() * movementSpeed) - (movementSpeed / 2), y: (Math.random() * movementSpeed) - (movementSpeed / 2), z: (Math.random() * movementSpeed) - (movementSpeed / 2)});
 
   }
 
-  const starsMaterial = new THREE.PointsMaterial({size: 1, color: 0xff0000, opacity: 1});
-
+  const starsMaterial = new THREE.PointsMaterial({size: 1, color: 0xffffff, opacity: 1});
   const starField = new THREE.Points(starsGeometry, starsMaterial);
 
-  scene.add(starField);
+  this.object = starField;
+  this.status = true;
 
-  this.update = function() {
-    const star =  this.object.geometry.vertices;
-    star.y += 100;
-    star.x += 100;
-    star.z += 100;
-  };
+  scene.add(this.object);
+
+  // const update = () => {
+  //
+  // };
 
   //const geometry = new THREE.Geometry();
 
@@ -389,12 +394,28 @@ const explodeAnimation = (x, y) => {
 //
 // };
 
+const updateStars = () => {
+  let pCount = parts.length;
+  while (pCount --) {
+    if (this.status === true) {
+      let pCount = totalObjects;
+      while (pCount --) {
+        const particle = this.object.geometry.vertices[pCount];
+        particle.x += dirs[pCount].y;
+        particle.y += dirs[pCount].x;
+        particle.z += dirs[pCount].z;
+      }
+      this.object.geometry.verticesNeedUpdate = true;
+    }
+  }
+};
+
 function draw()
 {
   // draw THREE.JS scene
   renderer.render(scene, camera);
   requestAnimationFrame(draw);
-
+  updateStars();
   ballPhysics();
   paddlePhysics();
   playerPaddleMovement();
@@ -560,7 +581,7 @@ function paddlePhysics()
         // switch direction of ball travel to create bounce
         ballDirX = - ballDirX;
         //explodeAnimation();
-        parts.push(new explodeAnimation(ball.position.x, ball.position.y));
+        parts.push(new explodeAnimation(ball.position.x, ball.position.y, Math.random(sizeRandomness), Math.random(sizeRandomness)));
         // we impact ball angle when hitting it
         // this is not realistic physics, just spices up the gameplay
         // allows you to 'slice' the ball to beat the opponent
