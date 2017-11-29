@@ -10,6 +10,8 @@ import Field from './objects/Field';
 
 let renderer, scene, camera, pointLight, spotLight;
 
+//const player1 = THREE.ImageUtils.loadTexture(`assets/img/player1.png`);
+
 // field variables
 const fieldWidth = 400, fieldHeight = 200;
 
@@ -29,6 +31,16 @@ const maxScore = 7;
 // set opponent difficulty
 const difficulty = 0.1;
 
+
+// particle variables
+const movementSpeed = 20;
+const totalObjects = 1000;
+//const objectSize = 10;
+const sizeRandomness = 40000;
+//const colors = [0xFF0FFF, 0xCCFF00, 0xFF000F, 0x996600, 0xFFFFFF];
+/////////////////////////////////
+const parts = [];
+const dirs = [];
 
 // ------------------------------------- //
 // ------- GAME FUNCTIONS -------------- //
@@ -66,6 +78,8 @@ const createCamera = () => {
   renderer = new THREE.WebGLRenderer();
   camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
   scene = new THREE.Scene();
+
+  //parts.push(new ExplodeAnimation(0, 0));
 
   // add the camera to the scene
   scene.add(camera);
@@ -156,15 +170,91 @@ const lights = () => {
   scene.add(spotLight);
 
   // MAGIC SHADOW CREATOR DELUXE EDITION with Lights PackTM DLC
-  renderer.shadowMapEnabled = true;
+  renderer.shadowMap.enabled = true;
+};
+
+const explodeAnimation = (x, y) => {
+
+  const starsGeometry = new THREE.Geometry();
+
+  for (let i = 0;i < totalObjects;i ++) {
+    const star = new THREE.Vector3();
+    star.x = x + THREE.Math.randFloatSpread(100);
+    star.y = y + THREE.Math.randFloatSpread(100);
+    star.z = THREE.Math.randFloatSpread(100);
+
+    starsGeometry.vertices.push(star);
+    dirs.push({x: (Math.random() * movementSpeed) - (movementSpeed / 2), y: (Math.random() * movementSpeed) - (movementSpeed / 2), z: (Math.random() * movementSpeed) - (movementSpeed / 2)});
+
+  }
+
+  const starsMaterial = new THREE.PointsMaterial({size: 1, color: 0xffffff, opacity: 1});
+  const starField = new THREE.Points(starsGeometry, starsMaterial);
+
+  this.object = starField;
+  this.status = true;
+
+  scene.add(this.object);
+
+  // const update = () => {
+  //
+  // };
+
+  //const geometry = new THREE.Geometry();
+
+  // this.object = particles;
+  // this.status = true;
+
+  //const particle = this.object;
+
+  // for (let i = 0;i < 30;i ++) {
+  //   const vertex = new THREE.Vector3();
+  //   // vertex.x = Math.round(x + Math.random(5000));
+  //   // vertex.y = Math.round(y + Math.random(5000));
+  //   // vertex.z = 0;
+  //   vertex.x = THREE.Math.randFloatSpread(2000);
+  //   vertex.y = THREE.Math.randFloatSpread(2000);
+  //   vertex.z = THREE.Math.randFloatSpread(2000);
+  //   geometry.vertices.push(vertex);
+  //   //console.log(particle);
+  // }
+  //
+  // const material = new THREE.PointsMaterial({size: objectSize, color: 0x00ff00});
+  // const particles = new THREE.Points(geometry, material);
+  //
+  // scene.add(particles);
+
+  //drawParticles(this.object);
+
+};
+
+
+// const drawParticles = test => {
+//   console.log(test);
+//
+// };
+
+const updateStars = () => {
+  let pCount = parts.length;
+  while (pCount --) {
+    if (this.status === true) {
+      let pCount = totalObjects;
+      while (pCount --) {
+        const particle = this.object.geometry.vertices[pCount];
+        particle.x += dirs[pCount].y;
+        particle.y += dirs[pCount].x;
+        particle.z += dirs[pCount].z;
+      }
+      this.object.geometry.verticesNeedUpdate = true;
+    }
+  }
 };
 
 const draw = () => {
   // draw THREE.JS scene
   renderer.render(scene, camera);
-  // loop draw function call
   requestAnimationFrame(draw);
-
+  updateStars();
   ballPhysics();
   paddlePhysics();
   playerPaddleMovement();
@@ -324,6 +414,8 @@ const paddlePhysics = () => {
         // paddle1.scale.y = 15;
         // switch direction of ball travel to create bounce
         ballDirX = - ballDirX;
+        //explodeAnimation();
+        parts.push(new explodeAnimation(ball.position.x, ball.position.y, Math.random(sizeRandomness), Math.random(sizeRandomness)));
         // we impact ball angle when hitting it
         // this is not realistic physics, just spices up the gameplay
         // allows you to 'slice' the ball to beat the opponent
@@ -351,6 +443,8 @@ const paddlePhysics = () => {
         //paddle2.scale.y = 15;
         // switch direction of ball travel to create bounce
         ballDirX = - ballDirX;
+        //explodeAnimation();
+        parts.push(new explodeAnimation(ball.position.x, ball.position.y));
         // we impact ball angle when hitting it
         // this is not realistic physics, just spices up the gameplay
         // allows you to 'slice' the ball to beat the opponent
