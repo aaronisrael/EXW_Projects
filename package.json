@@ -42,6 +42,9 @@
     "webpack-dev-server": "^2.4.1"
   },
   "dependencies": {
+    "hapi": "^17.1.1",
+    "inert": "^5.0.1",
+    "socket.io": "^2.0.4",
     "three": "^0.88.0",
     "threex": "^1.0.0"
   }

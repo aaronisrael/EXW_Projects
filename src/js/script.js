@@ -184,7 +184,7 @@ const explodeAnimation = (x, y) => {
     star.z = THREE.Math.randFloatSpread(100);
 
     starsGeometry.vertices.push(star);
-    dirs.push({x: (Math.random() * movementSpeed) - (movementSpeed / 2), y: (Math.random() * movementSpeed) - (movementSpeed / 2), z: (Math.random() * movementSpeed) - (movementSpeed / 2)});
+    dirs.push({x: (Math.random() * movementSpeed) - (movementSpeed / 5), y: (Math.random() * movementSpeed) - (movementSpeed / 5), z: (Math.random() * movementSpeed) - (movementSpeed / 5)});
 
   }
 
@@ -195,44 +195,7 @@ const explodeAnimation = (x, y) => {
   this.status = true;
 
   scene.add(this.object);
-
-  // const update = () => {
-  //
-  // };
-
-  //const geometry = new THREE.Geometry();
-
-  // this.object = particles;
-  // this.status = true;
-
-  //const particle = this.object;
-
-  // for (let i = 0;i < 30;i ++) {
-  //   const vertex = new THREE.Vector3();
-  //   // vertex.x = Math.round(x + Math.random(5000));
-  //   // vertex.y = Math.round(y + Math.random(5000));
-  //   // vertex.z = 0;
-  //   vertex.x = THREE.Math.randFloatSpread(2000);
-  //   vertex.y = THREE.Math.randFloatSpread(2000);
-  //   vertex.z = THREE.Math.randFloatSpread(2000);
-  //   geometry.vertices.push(vertex);
-  //   //console.log(particle);
-  // }
-  //
-  // const material = new THREE.PointsMaterial({size: objectSize, color: 0x00ff00});
-  // const particles = new THREE.Points(geometry, material);
-  //
-  // scene.add(particles);
-
-  //drawParticles(this.object);
-
 };
-
-
-// const drawParticles = test => {
-//   console.log(test);
-//
-// };
 
 const updateStars = () => {
   let pCount = parts.length;
