@@ -1,4 +1,5 @@
 const THREE = require(`three`);
+const io = require(`socket.io-client`);
 
 import Colors from './objects/lib/Colors';
 import KeyPressed from './objects/lib/KeyPressed';
@@ -60,6 +61,11 @@ const setup = () => {
   lights();
 
   draw();
+
+  const socket = io.connect(`localhost:3000`);
+  socket.on(`connect`, () => {
+    console.log(`Connected: ${socket.id}`);
+  });
 };
 
 const createCamera = () => {
