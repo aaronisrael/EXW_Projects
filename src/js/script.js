@@ -46,10 +46,6 @@ const dirs = [];
 
 const fps = 60;
 
-//webAudio
-window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.oAudioContext || window.msAudioContext;
-navigator.getUserMedia  = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
-
 // ------------------------------------- //
 // ------- GAME FUNCTIONS -------------- //
 // ------------------------------------- //
@@ -58,6 +54,11 @@ const setup = () => {
   // update the board to reflect the max score for match win
   document.querySelector(`.winnerBoard`).innerHTML = `First to ${  maxScore  } wins!`;
 
+  //webAudio
+  window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.oAudioContext || window.msAudioContext;
+  navigator.getUserMedia  = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+  window.AudioContext   = window.AudioContext || window.webkitAudioContext;
+  const audioContext      = new AudioContext();
   // now reset player and opponent scores
   score1 = 0;
   score2 = 0;
@@ -66,7 +67,7 @@ const setup = () => {
   createCamera();
   createTable();
   lights();
-  audioInit();
+  audioInit(audioContext);
 
   draw();
 
@@ -92,7 +93,6 @@ const audioInit = () => {
 };
 
 const gotAudioStream = (analyserNode, audioStreamSource, stream, audioContext, frequencyData) => {
-
 
   analyserNode = audioContext.createAnalyser();
   analyserNode.fftSize = 2048;
