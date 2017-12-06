@@ -11,7 +11,6 @@ class Ball {
       RADIUS,
       SEGMENTS,
       RINGS),
-
       Materials.sphereMaterial());
     return ball;
   }
