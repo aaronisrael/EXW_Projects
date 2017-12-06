@@ -23,7 +23,8 @@ const paddleSpeed = 3;
 
 // ball variables
 let ball, paddle1, paddle2;
-let ballDirX = 1, ballDirY = 1, ballSpeed = 2;
+let ballDirX = 1, ballDirY = 1;
+const ballSpeed = 2;
 
 // game-related variables
 let score1 = 0, score2 = 0;
@@ -66,7 +67,7 @@ const setup = () => {
 
   startAnimating(60);
 
-  const socket = io.connect(`localhost:3000`);
+  const socket = io.connect(`0.0.0.0:3000`);
   socket.on(`connect`, () => {
     console.log(`Connected: ${socket.id}`);
   });
@@ -207,16 +208,29 @@ const explodeAnimation = (x, y) => {
   scene.add(this.object);
 };
 
+const draw = () => {
+  // draw THREE.JS scene
+  updateStars();
+  ballPhysics();
+  paddlePhysics();
+  playerPaddleMovement();
+  opponentPaddleMovement();
+
+  renderer.render(scene, camera);
+
+  requestAnimationFrame(draw);
+};
+
 const updateStars = () => {
   let pCount = 1;
   while (pCount --) {
     if (this.status === true) {
-      let pCount = totalObjects;
-      while (pCount --) {
-        const particle = this.object.geometry.vertices[pCount];
-        particle.x += dirs[pCount].y;
-        particle.y += dirs[pCount].x;
-        particle.z += dirs[pCount].z;
+      let pCountO = totalObjects;
+      while (pCountO --) {
+        const particle = this.object.geometry.vertices[pCountO];
+        particle.x += dirs[pCountO].y;
+        particle.y += dirs[pCountO].x;
+        particle.z += dirs[pCountO].z;
       }
 
       this.object.geometry.verticesNeedUpdate = true;
@@ -225,6 +239,7 @@ const updateStars = () => {
 
 };
 
+<<<<<<< HEAD
 const draw = () => {
   // draw THREE.JS scene
   renderer.render(scene, camera);
@@ -235,6 +250,8 @@ const draw = () => {
   playerPaddleMovement();
   opponentPaddleMovement();
 };
+=======
+>>>>>>> master
 
 const startAnimating = fps => {
   fpsInterval = 1000 / fps;
@@ -283,7 +300,6 @@ const ballPhysics = () => {
     document.querySelector(`.scores`).innerHTML = `${score1  }-${  score2}`;
     // reset ball to center
     resetBall(2);
-    matchScoreCheck();
   }
 
   // if ball goes off the 'right' side (CPU's side)
@@ -295,7 +311,6 @@ const ballPhysics = () => {
     document.querySelector(`.scores`).innerHTML = `${score1  }-${  score2}`;
     // reset ball to center
     resetBall(1);
-    matchScoreCheck();
   }
 
   // if ball goes off the top side (side of table)
@@ -354,7 +369,7 @@ const opponentPaddleMovement = () => {
   // this is done because we stretch the paddle at some points
   // stretching is done when paddle touches side of table and when paddle hits ball
   // by doing this here, we ensure paddle always comes back to default size
-  paddle2.scale.y += (1 - paddle2.scale.y) * 0.2;
+  // paddle2.scale.y += (1 - paddle2.scale.y) * 0.2;
 };
 
 
@@ -482,41 +497,6 @@ const resetBall = loser => {
   }
   // set the ball to move +ve in y plane (towards left from the camera)
   ballDirY = 1;
-};
-
-let bounceTime = 0;
-// checks if either player or opponent has reached 7 points
-const matchScoreCheck = () => {
-  // if player has 7 points
-  if (score1 >= maxScore)
-  {
-    // stop the ball
-    ballSpeed = 0;
-    // write to the banner
-    document.getElementById(`scores`).innerHTML = `Player wins!`;
-    document.getElementById(`winnerBoard`).innerHTML = `Refresh to play again`;
-    // make paddle bounce up and down
-    bounceTime ++;
-    paddle1.position.z = Math.sin(bounceTime * 0.1) * 10;
-    // enlarge and squish paddle to emulate joy
-    paddle1.scale.z = 2 + Math.abs(Math.sin(bounceTime * 0.1)) * 10;
-    paddle1.scale.y = 2 + Math.abs(Math.sin(bounceTime * 0.05)) * 10;
-  }
-  // else if opponent has 7 points
-  else if (score2 >= maxScore)
-  {
-    // stop the ball
-    ballSpeed = 0;
-    // write to the banner
-    document.getElementById(`scores`).innerHTML = `CPU wins!`;
-    document.getElementById(`winnerBoard`).innerHTML = `Refresh to play again`;
-    // make paddle bounce up and down
-    bounceTime ++;
-    paddle2.position.z = Math.sin(bounceTime * 0.1) * 10;
-    // enlarge and squish paddle to emulate joy
-    paddle2.scale.z = 2 + Math.abs(Math.sin(bounceTime * 0.1)) * 10;
-    paddle2.scale.y = 2 + Math.abs(Math.sin(bounceTime * 0.05)) * 10;
-  }
 };
 
 window.addEventListener(`keyup`, event => { KeyPressed.onKeyup(event); }, false);
