@@ -12,7 +12,7 @@ const Server = require(`hapi`).Server;
 
 const server = new Server();
 
-server.connection({port: PORT});
+server.connection({port: PORT, host: `0.0.0.0`});
 
 const io = require(`socket.io`)(server.listener);
 io.on(`connection`, socket => {
