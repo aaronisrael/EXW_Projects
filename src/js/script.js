@@ -43,6 +43,10 @@ const sizeRandomness = 40000;
 const parts = [];
 const dirs = [];
 
+const stop = false;
+let frameCount = 0;
+let fps, fpsInterval, startTime, now, then, elapsed;
+
 // ------------------------------------- //
 // ------- GAME FUNCTIONS -------------- //
 // ------------------------------------- //
@@ -60,7 +64,7 @@ const setup = () => {
   createTable();
   lights();
 
-  draw();
+  startAnimating(60);
 
   const socket = io.connect(`localhost:3000`);
   socket.on(`connect`, () => {
@@ -190,9 +194,9 @@ const explodeAnimation = (x, y) => {
     star.z = THREE.Math.randFloatSpread(100);
 
     starsGeometry.vertices.push(star);
-    dirs.push({x: (Math.random() * movementSpeed) - (movementSpeed / 5), y: (Math.random() * movementSpeed) - (movementSpeed / 5), z: (Math.random() * movementSpeed) - (movementSpeed / 5)});
-
+    dirs.push({x: (Math.random() * 10) - (10 / 5), y: (Math.random() * 10) - (movementSpeed / 5), z: (Math.random() * movementSpeed) - (movementSpeed / 5)});
   }
+  //totalObjects = 1000;
 
   const starsMaterial = new THREE.PointsMaterial({size: 1, color: 0xffffff, opacity: 1});
   const starField = new THREE.Points(starsGeometry, starsMaterial);
@@ -204,7 +208,7 @@ const explodeAnimation = (x, y) => {
 };
 
 const updateStars = () => {
-  let pCount = parts.length;
+  let pCount = 1;
   while (pCount --) {
     if (this.status === true) {
       let pCount = totalObjects;
@@ -214,20 +218,59 @@ const updateStars = () => {
         particle.y += dirs[pCount].x;
         particle.z += dirs[pCount].z;
       }
+
       this.object.geometry.verticesNeedUpdate = true;
     }
   }
+
 };
 
 const draw = () => {
   // draw THREE.JS scene
   renderer.render(scene, camera);
-  requestAnimationFrame(draw);
+  //requestAnimationFrame(draw);
   updateStars();
   ballPhysics();
   paddlePhysics();
   playerPaddleMovement();
   opponentPaddleMovement();
+};
+
+const startAnimating = fps => {
+  fpsInterval = 1000 / fps;
+  then = Date.now();
+  startTime = then;
+  animate();
+};
+
+const animate = () => {
+  if (stop) {
+    return;
+  }
+
+    // request another frame
+  requestAnimationFrame(animate);
+    // calc elapsed time since last loop
+
+  now = Date.now();
+  elapsed = now - then;
+
+    // if enough time has elapsed, draw the next frame
+
+  if (elapsed > fpsInterval) {
+
+        // Get ready for next frame by setting then=now, but...
+        // Also, adjust for fpsInterval not being multiple of 16.67
+    then = now - (elapsed % fpsInterval);
+
+    draw();
+
+
+        // TESTING...Report #seconds since start and achieved fps.
+    const sinceStart = now - startTime;
+    const currentFps = Math.round(1000 / (sinceStart / ++ frameCount) * 100) / 100;
+    //console.log(currentFps);
+  }
 };
 
 const ballPhysics = () => {
