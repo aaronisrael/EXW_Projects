@@ -44,9 +44,11 @@ const sizeRandomness = 40000;
 const parts = [];
 const dirs = [];
 
-const stop = false;
-let frameCount = 0;
-let fps, fpsInterval, startTime, now, then, elapsed;
+const fps = 60;
+
+//webAudio
+window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.oAudioContext || window.msAudioContext;
+navigator.getUserMedia  = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 
 // ------------------------------------- //
 // ------- GAME FUNCTIONS -------------- //
@@ -64,13 +66,77 @@ const setup = () => {
   createCamera();
   createTable();
   lights();
+  audioInit();
 
-  startAnimating(60);
+  draw();
 
   const socket = io.connect(`0.0.0.0:3000`);
   socket.on(`connect`, () => {
     console.log(`Connected: ${socket.id}`);
   });
+};
+
+const audioInit = () => {
+  console.log(`hello`);
+  if (navigator.getUserMedia) {
+    navigator.getUserMedia({
+      audio: true
+    },
+    gotAudioStream,
+    function() {
+      alert(`You need to accept the microphone to play`);
+    });
+  } else {
+    alert(`Sorry your browser isn't supported, try Chrome.`);
+  }
+};
+
+const gotAudioStream = (analyserNode, audioStreamSource, stream, audioContext, frequencyData) => {
+
+
+  analyserNode = audioContext.createAnalyser();
+  analyserNode.fftSize = 2048;
+
+    // Create an AudioNode from the stream.
+  audioStreamSource = audioContext.createMediaStreamSource(stream);
+  audioStreamSource.connect(analyserNode);
+
+    // Connect it to the destination to hear yourself (or any other node for processing!)
+    //analyserNode.connect(audioContext.destination);
+  frequencyData = new Uint8Array(analyserNode.frequencyBinCount);
+
+  updateAudio(analyserNode, frequencyData);
+};
+
+const updateAudio = (analyserNode, frequencyData) => {
+  setTimeout(function() {
+    // Schedule the next update
+    requestAnimationFrame(updateAudio);
+
+    // Get the new frequency data
+    analyserNode.getByteFrequencyData(frequencyData);
+
+    let average              = 0;
+    const frequencyLength      = frequencyData.length;
+    let frequencyActiveCount = 0;
+
+    for (let i = 0;i < frequencyLength;i ++) {
+      const value = frequencyData[i] / 256;
+
+          // Only save count value != 0 to have a decent average for bad microphones
+      if (frequencyData[i] !== 0) {
+        frequencyActiveCount ++;
+        average += value;
+      }
+    }
+
+    average = average / frequencyActiveCount;
+
+        // Make Flappy flyyyyy !
+    const playerPosition = average;
+    console.log(playerPosition);
+    // IMPLEMENT PLAYER HERE XOXOXOXOXOXOXOXOXO
+  }, 1000 / fps);
 };
 
 const createCamera = () => {
@@ -237,57 +303,6 @@ const updateStars = () => {
     }
   }
 
-};
-
-<<<<<<< HEAD
-const draw = () => {
-  // draw THREE.JS scene
-  renderer.render(scene, camera);
-  //requestAnimationFrame(draw);
-  updateStars();
-  ballPhysics();
-  paddlePhysics();
-  playerPaddleMovement();
-  opponentPaddleMovement();
-};
-=======
->>>>>>> master
-
-const startAnimating = fps => {
-  fpsInterval = 1000 / fps;
-  then = Date.now();
-  startTime = then;
-  animate();
-};
-
-const animate = () => {
-  if (stop) {
-    return;
-  }
-
-    // request another frame
-  requestAnimationFrame(animate);
-    // calc elapsed time since last loop
-
-  now = Date.now();
-  elapsed = now - then;
-
-    // if enough time has elapsed, draw the next frame
-
-  if (elapsed > fpsInterval) {
-
-        // Get ready for next frame by setting then=now, but...
-        // Also, adjust for fpsInterval not being multiple of 16.67
-    then = now - (elapsed % fpsInterval);
-
-    draw();
-
-
-        // TESTING...Report #seconds since start and achieved fps.
-    const sinceStart = now - startTime;
-    const currentFps = Math.round(1000 / (sinceStart / ++ frameCount) * 100) / 100;
-    //console.log(currentFps);
-  }
 };
 
 const ballPhysics = () => {
