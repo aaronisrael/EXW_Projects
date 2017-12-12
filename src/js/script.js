@@ -58,7 +58,8 @@ const setup = () => {
   window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.oAudioContext || window.msAudioContext;
   navigator.getUserMedia  = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
   window.AudioContext   = window.AudioContext || window.webkitAudioContext;
-  const audioContext      = new AudioContext();
+
+  const audioContext = new AudioContext();
   // now reset player and opponent scores
   score1 = 0;
   score2 = 0;
@@ -93,6 +94,8 @@ const audioInit = () => {
 };
 
 const gotAudioStream = (analyserNode, audioStreamSource, stream, audioContext, frequencyData) => {
+
+  //const audioContext = new AudioContext();
 
   analyserNode = audioContext.createAnalyser();
   analyserNode.fftSize = 2048;
