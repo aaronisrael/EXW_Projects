@@ -44,7 +44,16 @@ const sizeRandomness = 40000;
 const parts = [];
 const dirs = [];
 
-const fps = 60;
+navigator.getUserMedia  = navigator.getUserMedia ||
+                          navigator.webkitGetUserMedia ||
+                          navigator.mozGetUserMedia ||
+                          navigator.msGetUserMedia;
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioContext = new AudioContext();
+let audioStreamSource = null,
+  analyserNode;
+//const audioStreamSource = null;
 
 // ------------------------------------- //
 // ------- GAME FUNCTIONS -------------- //
@@ -54,12 +63,6 @@ const setup = () => {
   // update the board to reflect the max score for match win
   document.querySelector(`.winnerBoard`).innerHTML = `First to ${  maxScore  } wins!`;
 
-  //webAudio
-  window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.oAudioContext || window.msAudioContext;
-  navigator.getUserMedia  = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
-  window.AudioContext   = window.AudioContext || window.webkitAudioContext;
-
-  const audioContext = new AudioContext();
   // now reset player and opponent scores
   score1 = 0;
   score2 = 0;
@@ -68,7 +71,7 @@ const setup = () => {
   createCamera();
   createTable();
   lights();
-  audioInit(audioContext);
+  audioInit();
 
   draw();
 
@@ -79,7 +82,7 @@ const setup = () => {
 };
 
 const audioInit = () => {
-  console.log(`hello`);
+
   if (navigator.getUserMedia) {
     navigator.getUserMedia({
       audio: true
@@ -93,10 +96,8 @@ const audioInit = () => {
   }
 };
 
-const gotAudioStream = (analyserNode, audioStreamSource, stream, audioContext, frequencyData) => {
-
-  //const audioContext = new AudioContext();
-
+const gotAudioStream = stream => {
+  console.log(`gotAudioStream`);
   analyserNode = audioContext.createAnalyser();
   analyserNode.fftSize = 2048;
 
@@ -106,40 +107,41 @@ const gotAudioStream = (analyserNode, audioStreamSource, stream, audioContext, f
 
     // Connect it to the destination to hear yourself (or any other node for processing!)
     //analyserNode.connect(audioContext.destination);
-  frequencyData = new Uint8Array(analyserNode.frequencyBinCount);
-
-  updateAudio(analyserNode, frequencyData);
+  updateAudio();
 };
 
-const updateAudio = (analyserNode, frequencyData) => {
-  setTimeout(function() {
+const updateAudio = () => {
     // Schedule the next update
-    requestAnimationFrame(updateAudio);
+  requestAnimationFrame(updateAudio);
 
     // Get the new frequency data
-    analyserNode.getByteFrequencyData(frequencyData);
+    //console.log(frequencyData);
+  const frequencyData = new Uint8Array(analyserNode.frequencyBinCount);
+  //console.log(analyserNode, frequencyData);
+  analyserNode.getByteFrequencyData(frequencyData);
 
-    let average              = 0;
-    const frequencyLength      = frequencyData.length;
-    let frequencyActiveCount = 0;
+  let average = 0;
+  const frequencyLength = frequencyData.length;
+  let frequencyActiveCount = 0;
 
-    for (let i = 0;i < frequencyLength;i ++) {
-      const value = frequencyData[i] / 256;
+  for (let i = 0;i < frequencyLength;i ++) {
+    const value = frequencyData[i] / 256;
 
           // Only save count value != 0 to have a decent average for bad microphones
-      if (frequencyData[i] !== 0) {
-        frequencyActiveCount ++;
-        average += value;
-      }
+    if (frequencyData[i] !== 0) {
+      frequencyActiveCount ++;
+      //console.log(frequencyActiveCount);
+      average += value;
     }
+  }
 
-    average = average / frequencyActiveCount;
+  average = average / frequencyActiveCount;
 
         // Make Flappy flyyyyy !
-    const playerPosition = average;
-    console.log(playerPosition);
-    // IMPLEMENT PLAYER HERE XOXOXOXOXOXOXOXOXO
-  }, 1000 / fps);
+  const playerPosition = Math.round(average * fieldHeight);
+  //console.log(playerPosition);
+  console.log(paddle1DirY);
+  paddle1DirY = playerPosition;
 };
 
 const createCamera = () => {
@@ -407,7 +409,7 @@ const playerPaddleMovement = () => {
     else
     {
       paddle1DirY = 0;
-      paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
+      //paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
     }
   }
   // move right
@@ -424,7 +426,7 @@ const playerPaddleMovement = () => {
     else
     {
       paddle1DirY = 0;
-      paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
+      //paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
     }
   }
   // else don't move paddle
@@ -433,8 +435,8 @@ const playerPaddleMovement = () => {
     // stop the paddle
     paddle1DirY = 0;
   }
-  paddle1.scale.y += (1 - paddle1.scale.y) * 0.2;
-  paddle1.scale.z += (1 - paddle1.scale.z) * 0.2;
+  //paddle1.scale.y += (1 - paddle1.scale.y) * 0.2;
+  //paddle1.scale.z += (1 - paddle1.scale.z) * 0.2;
   paddle1.position.y += paddle1DirY;
 };
 
