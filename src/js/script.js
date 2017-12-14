@@ -11,7 +11,7 @@ import Field from './objects/Field';
 
 let renderer, scene, camera, pointLight, spotLight;
 
-//const player1 = THREE.ImageUtils.loadTexture(`assets/img/player1.png`);
+let twoPlayers = false;
 
 // field variables
 const fieldWidth = 400, fieldHeight = 200;
@@ -33,6 +33,7 @@ const maxScore = 7;
 // set opponent difficulty
 const difficulty = 0.1;
 
+// const socket = io.connect(`http://192.168.0.240:3000`);
 
 // particle variables
 const movementSpeed = 20;
@@ -48,7 +49,52 @@ const dirs = [];
 // ------- GAME FUNCTIONS -------------- //
 // ------------------------------------- //
 
-const setup = () => {
+const settings = () => {
+  const menu = document.querySelector(`.settings`);
+  const game = document.querySelector(`.Pong`);
+  const button = document.querySelector(`.settingSubmit`);
+  game.style.display = `none`;
+  const radios = document.getElementsByName(`players`);
+  button.addEventListener(`click`, () => {
+    for (let i = 0, length = radios.length;i < length;i ++)
+    {
+      if (radios[i].checked)
+     {
+        if (radios[i].value === `0`) {
+          twoPlayers = false;
+          setup(game, menu);
+        }
+        if (radios[i].value === `1`) {
+          twoPlayers = true;
+          waitForPlayer();
+        }
+      }
+    }
+  });
+
+};
+
+const waitForPlayer = () => {
+  const socket = io.connect(`http://192.168.0.240:3000`);
+  console.log(twoPlayers);
+  console.log(`waiting`);
+  socket.on(`connect`, () => {
+    console.log(`Connected: ${socket.id}`);
+  });
+  socket.on(`players`, users => {
+    for (let i = 0;i < users.length;i ++) {
+      if (users[i] === socket.id) {
+        if (i === 0) console.log(`player 1`);
+        else if (i === 1) console.log(`player 2`);
+        else console.log(`waiting list`);
+      }
+    }
+  });
+};
+
+const setup = (game, menu) => {
+  game.style.display = `block`;
+  menu.style.display = `none`;
   // update the board to reflect the max score for match win
   document.querySelector(`.winnerBoard`).innerHTML = `First to ${  maxScore  } wins!`;
 
@@ -62,11 +108,6 @@ const setup = () => {
   lights();
 
   draw();
-
-  const socket = io.connect(`0.0.0.0:3000`);
-  socket.on(`connect`, () => {
-    console.log(`Connected: ${socket.id}`);
-  });
 };
 
 const createCamera = () => {
@@ -205,7 +246,6 @@ const explodeAnimation = (x, y) => {
 };
 
 const draw = () => {
-  // draw THREE.JS scene
   updateStars();
   ballPhysics();
   paddlePhysics();
@@ -232,7 +272,6 @@ const updateStars = () => {
       this.object.geometry.verticesNeedUpdate = true;
     }
   }
-
 };
 
 const ballPhysics = () => {
@@ -242,7 +281,7 @@ const ballPhysics = () => {
     // CPU scores
     score2 ++;
     // update scoreboard HTML
-    document.querySelector(`.scores`).innerHTML = `${score1  }-${  score2}`;
+    document.querySelector(`.scores`).innerHTML = `${score1}-${score2}`;
     // reset ball to center
     resetBall(2);
   }
@@ -276,12 +315,10 @@ const ballPhysics = () => {
   // limit ball's y-speed to 2x the x-speed
   // this is so the ball doesn't speed from left to right super fast
   // keeps game playable for humans
-  if (ballDirY > ballSpeed * 2)
-  {
+  if (ballDirY > ballSpeed * 2) {
     ballDirY = ballSpeed * 2;
   }
-  else if (ballDirY < - ballSpeed * 2)
-  {
+  else if (ballDirY < - ballSpeed * 2) {
     ballDirY = - ballSpeed * 2;
   }
 };
@@ -447,4 +484,4 @@ const resetBall = loser => {
 window.addEventListener(`keyup`, event => { KeyPressed.onKeyup(event); }, false);
 window.addEventListener(`keydown`, event => { KeyPressed.onKeydown(event); }, false);
 
-setup();
+settings();

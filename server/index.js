@@ -1,25 +1,33 @@
-
-// const log = true;
-
 require(`dotenv`).load({silent: true});
 
 const {
   PORT = 3000,
-  URL = `http://localhost`
+  URL = `http://192.168.0.240`
 } = process.env;
 
 const Server = require(`hapi`).Server;
 
 const server = new Server();
 
-server.connection({port: PORT, host: `0.0.0.0`});
+server.connection({port: PORT, host: `192.168.0.240`});
 
 const io = require(`socket.io`)(server.listener);
+
+const users = [];
+// let key = 0;
 io.on(`connection`, socket => {
-  console.log(`connection`);
-  socket.on(`message`, message => {
-    console.log(`received message: ${message}`);
-    io.sockets.emit(`message`, message);
+  users.push(socket.id);
+  console.log(users);
+  if (users.length === 2) {
+    console.log(`2 users`);
+    io.sockets.emit(`players`, users);
+  }
+  socket.on(`disconnect`, () => {
+    console.log(`client disconnected`);
+    const index = users.indexOf(socket.id);
+    if (index > - 1) {
+      users.splice(index, 1);
+    }
   });
 });
 
