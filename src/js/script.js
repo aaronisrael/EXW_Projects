@@ -12,6 +12,9 @@ import Field from './objects/Field';
 let renderer, scene, camera, pointLight, spotLight;
 
 let twoPlayers = false;
+let playerOne = true;
+
+let socket;
 
 // field variables
 const fieldWidth = 400, fieldHeight = 200;
@@ -19,6 +22,7 @@ const fieldWidth = 400, fieldHeight = 200;
 // paddle variables
 let paddleWidth, paddleHeight, paddleDepth;
 let paddle1DirY = 0, paddle2DirY = 0;
+let paddle1DirYPrev = 0, paddle2DirYPrev = 0;
 const paddleSpeed = 3;
 
 // ball variables
@@ -66,7 +70,7 @@ const settings = () => {
         }
         if (radios[i].value === `1`) {
           twoPlayers = true;
-          waitForPlayer();
+          waitForPlayer(game, menu);
         }
       }
     }
@@ -74,8 +78,8 @@ const settings = () => {
 
 };
 
-const waitForPlayer = () => {
-  const socket = io.connect(`http://192.168.0.240:3000`);
+const waitForPlayer = (game, menu) => {
+  socket = io.connect(`http://192.168.0.240:3000`);
   console.log(twoPlayers);
   console.log(`waiting`);
   socket.on(`connect`, () => {
@@ -84,15 +88,22 @@ const waitForPlayer = () => {
   socket.on(`players`, users => {
     for (let i = 0;i < users.length;i ++) {
       if (users[i] === socket.id) {
-        if (i === 0) console.log(`player 1`);
-        else if (i === 1) console.log(`player 2`);
+        if (i === 0) {
+          playerOne = true;
+          console.log(playerOne);
+        }
+        else if (i === 1) {
+          playerOne = false;
+          console.log(playerOne);
+        }
         else console.log(`waiting list`);
       }
     }
+    setup(game, menu, socket);
   });
 };
 
-const setup = (game, menu) => {
+const setup = (game, menu, socket) => {
   game.style.display = `block`;
   menu.style.display = `none`;
   // update the board to reflect the max score for match win
@@ -107,7 +118,7 @@ const setup = (game, menu) => {
   createTable();
   lights();
 
-  draw();
+  draw(socket);
 };
 
 const createCamera = () => {
@@ -245,12 +256,16 @@ const explodeAnimation = (x, y) => {
   scene.add(this.object);
 };
 
-const draw = () => {
+const draw = socket => {
   updateStars();
   ballPhysics();
   paddlePhysics();
-  playerPaddleMovement();
-  opponentPaddleMovement();
+  player1PaddleMovement(socket);
+  if (twoPlayers) {
+    player2PaddleMovement(socket);
+  } else {
+    aiPaddleMovement();
+  }
 
   renderer.render(scene, camera);
 
@@ -324,7 +339,7 @@ const ballPhysics = () => {
 };
 
 // Handles CPU paddle movement and logic
-const opponentPaddleMovement = () => {
+const aiPaddleMovement = () => {
   // Lerp towards the ball on the y plane
   paddle2DirY = (ball.position.y - paddle2.position.y) * difficulty;
 
@@ -354,52 +369,108 @@ const opponentPaddleMovement = () => {
   // paddle2.scale.y += (1 - paddle2.scale.y) * 0.2;
 };
 
+const player2PaddleMovement = () => {
+  if (!playerOne) {
+    if (KeyPressed.isDown(KeyPressed.UP)) {
+    // if paddle is not touching the side of table
+    // we move
+      if (paddle2.position.y < fieldHeight * 0.45) {
+        paddle2DirY = paddleSpeed * 0.5;
+      }
+    // else we don't move and stretch the paddle
+    // to indicate we can't move
+      else {
+        paddle2DirY = 0;
+        paddle2.scale.z += (10 - paddle2.scale.z) * 0.2;
+      }
+    }
+  // move right
+    else if (KeyPressed.isDown(KeyPressed.DOWN)) {
+    // if paddle is not touching the side of table
+    // we move
+      if (paddle2.position.y > - fieldHeight * 0.45) {
+        paddle2DirY = - paddleSpeed * 0.5;
+      }
+    // else we don't move and stretch the paddle
+    // to indicate we can't move
+      else {
+        paddle2DirY = 0;
+        paddle2.scale.z += (10 - paddle2.scale.z) * 0.2;
+      }
+    }
+  // else don't move paddle
+    else {
+    // stop the paddle
+      paddle2DirY = 0;
+    }
+    paddle2.scale.y += (1 - paddle2.scale.y) * 0.2;
+    paddle2.scale.z += (1 - paddle2.scale.z) * 0.2;
+    paddle2.position.y += paddle2DirY;
+    socket.on(`playerOne`, movement => {
+      if (paddle1DirYPrev !== movement) {
+        paddle1DirYPrev = movement;
+        paddle1.position.y = paddle1DirYPrev;
+        console.log(movement);
+      }
+    });
+    if (paddle2DirYPrev !== paddle2.position.y) {
+      paddle2DirYPrev = paddle2.position.y;
+      socket.emit(`playerTwo`, paddle2DirYPrev);
+    }
+  }
+};
 
 // Handles player's paddle movement
-const playerPaddleMovement = () => {
-  // move left
-  if (KeyPressed.isDown(KeyPressed.A))
-  {
+const player1PaddleMovement = () => {
+  if (playerOne) {
+    // move left
+    if (KeyPressed.isDown(KeyPressed.UP)) {
     // if paddle is not touching the side of table
     // we move
-    if (paddle1.position.y < fieldHeight * 0.45)
-    {
-      paddle1DirY = paddleSpeed * 0.5;
-    }
+      if (paddle1.position.y < fieldHeight * 0.45) {
+        paddle1DirY = paddleSpeed * 0.5;
+      }
     // else we don't move and stretch the paddle
     // to indicate we can't move
-    else
-    {
-      paddle1DirY = 0;
-      paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
+      else {
+        paddle1DirY = 0;
+        paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
+      }
     }
-  }
   // move right
-  else if (KeyPressed.isDown(KeyPressed.D))
-  {
+    else if (KeyPressed.isDown(KeyPressed.DOWN)) {
     // if paddle is not touching the side of table
     // we move
-    if (paddle1.position.y > - fieldHeight * 0.45)
-    {
-      paddle1DirY = - paddleSpeed * 0.5;
-    }
+      if (paddle1.position.y > - fieldHeight * 0.45) {
+        paddle1DirY = - paddleSpeed * 0.5;
+      }
     // else we don't move and stretch the paddle
     // to indicate we can't move
-    else
-    {
+      else {
+        paddle1DirY = 0;
+        paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
+      }
+    }
+  // else don't move paddle
+    else {
+    // stop the paddle
       paddle1DirY = 0;
-      paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
+    }
+    paddle1.scale.y += (1 - paddle1.scale.y) * 0.2;
+    paddle1.scale.z += (1 - paddle1.scale.z) * 0.2;
+    paddle1.position.y += paddle1DirY;
+    socket.on(`playerTwo`, movement => {
+      if (paddle2DirYPrev !== movement) {
+        paddle2DirYPrev = movement;
+        paddle2.position.y = paddle2DirYPrev;
+        console.log(movement);
+      }
+    });
+    if (paddle1DirYPrev !== paddle1.position.y) {
+      paddle1DirYPrev = paddle1.position.y;
+      socket.emit(`playerOne`, paddle1DirYPrev);
     }
   }
-  // else don't move paddle
-  else
-  {
-    // stop the paddle
-    paddle1DirY = 0;
-  }
-  paddle1.scale.y += (1 - paddle1.scale.y) * 0.2;
-  paddle1.scale.z += (1 - paddle1.scale.z) * 0.2;
-  paddle1.position.y += paddle1DirY;
 };
 
 // Handles paddle collision logic

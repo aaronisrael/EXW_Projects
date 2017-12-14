@@ -29,6 +29,12 @@ io.on(`connection`, socket => {
       users.splice(index, 1);
     }
   });
+  socket.on(`playerOne`, movement => {
+    io.sockets.emit(`playerOne`, movement);
+  });
+  socket.on(`playerTwo`, movement => {
+    io.sockets.emit(`playerTwo`, movement);
+  });
 });
 
 server.start(err => {

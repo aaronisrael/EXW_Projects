@@ -1,8 +1,8 @@
 const KeyPressed = {
   _pressed: {},
 
-  A: 38,
-  D: 40,
+  UP: 38,
+  DOWN: 40,
   SPACE: 32,
 
   isDown(keyCode) {
