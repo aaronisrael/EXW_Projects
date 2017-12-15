@@ -2,14 +2,14 @@ require(`dotenv`).load({silent: true});
 
 const {
   PORT = 3000,
-  URL = `http://192.168.0.240`
+  URL = `http://192.168.0.104`
 } = process.env;
 
 const Server = require(`hapi`).Server;
 
 const server = new Server();
 
-server.connection({port: PORT, host: `192.168.0.240`});
+server.connection({port: PORT, host: `192.168.0.104`});
 
 const io = require(`socket.io`)(server.listener);
 
