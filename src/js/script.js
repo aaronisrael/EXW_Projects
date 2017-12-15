@@ -139,9 +139,7 @@ const updateAudio = () => {
 
         // Make Flappy flyyyyy !
   const playerPosition = Math.round(average * fieldHeight);
-  //console.log(playerPosition);
-  console.log(paddle1DirY);
-  paddle1DirY = playerPosition;
+  console.log(playerPosition);
 };
 
 const createCamera = () => {
