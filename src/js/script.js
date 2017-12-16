@@ -19,7 +19,7 @@ const fieldWidth = 400, fieldHeight = 200;
 // paddle variables
 let paddleWidth, paddleHeight, paddleDepth;
 let paddle1DirY = 0, paddle2DirY = 0;
-const paddleSpeed = 3;
+const paddleSpeed = 1;
 
 // ball variables
 let ball, paddle1, paddle2;
@@ -140,6 +140,7 @@ const updateAudio = () => {
         // Make Flappy flyyyyy !
   const playerPosition = Math.round(average * fieldHeight);
   console.log(playerPosition);
+  //playerPosition = paddle1DirY;
 };
 
 const createCamera = () => {
