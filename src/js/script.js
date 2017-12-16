@@ -70,8 +70,8 @@ const setup = () => {
 
   // set up all the objects in the scene
   createCamera();
-  tableImg();
   createTable();
+  tableImg();
   lights();
   audioInit();
 
@@ -83,6 +83,8 @@ const setup = () => {
   });
 };
 
+
+//Laden van het veld
 const tableImg = () => {
   const loader = new THREE.ImageLoader();
 
@@ -91,9 +93,9 @@ const tableImg = () => {
     `assets/svg/field.png`,
     function (image) {
 
-      const canvas = document.createElement(`tafel`);
+      const canvas = document.createElement(`canvas`);
       const context = canvas.getContext(`2d`);
-      context.drawImage(image, 100, 100);
+      context.drawImage(image, 200, 200);
     },
   );
 };
