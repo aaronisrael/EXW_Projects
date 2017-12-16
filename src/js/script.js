@@ -20,6 +20,7 @@ const fieldWidth = 400, fieldHeight = 200;
 let paddleWidth, paddleHeight, paddleDepth;
 let paddle1DirY = 0, paddle2DirY = 0;
 const paddleSpeed = 1;
+let playerPositie = fieldHeight / 2;
 
 // ball variables
 let ball, paddle1, paddle2;
@@ -137,9 +138,9 @@ const updateAudio = () => {
 
   average = average / frequencyActiveCount;
 
-        // Make Flappy flyyyyy !
+  // HIER MOET JE DE PADDLE AANPASSEN
   const playerPosition = Math.round(average * fieldHeight);
-  console.log(playerPosition);
+  playerPositie = playerPosition;
   //playerPosition = paddle1DirY;
 };
 
@@ -394,50 +395,109 @@ const opponentPaddleMovement = () => {
 
 // Handles player's paddle movement
 const playerPaddleMovement = () => {
-  // move left
-  if (KeyPressed.isDown(KeyPressed.A))
-  {
-    // if paddle is not touching the side of table
-    // we move
-    if (paddle1.position.y < fieldHeight * 0.45)
-    {
+
+  if (paddle1.position.y < fieldHeight * 0.45) {
+    if (playerPositie > fieldHeight / 2) {
+      console.log(`de positie is groter dan 100`);
+      console.log(`de paddle moet naar boven`);
       paddle1DirY = paddleSpeed * 0.5;
-    }
-    // else we don't move and stretch the paddle
-    // to indicate we can't move
-    else
-    {
+    } else {
       paddle1DirY = 0;
-      //paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
-    }
-  }
-  // move right
-  else if (KeyPressed.isDown(KeyPressed.D))
-  {
-    // if paddle is not touching the side of table
-    // we move
-    if (paddle1.position.y > - fieldHeight * 0.45)
-    {
+    } }
+  else if
+
+  (paddle1.position.y > - fieldHeight * 0.45) {
+
+    if (playerPositie < fieldHeight / 2) {
+      console.log(`de positie is kleiner dan 100`);
+      console.log(`paddle moet naar beneden`);
+    //console.log(paddle1DirY);
       paddle1DirY = - paddleSpeed * 0.5;
-    }
-    // else we don't move and stretch the paddle
-    // to indicate we can't move
-    else
-    {
+    } else {
       paddle1DirY = 0;
-      //paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
     }
   }
-  // else don't move paddle
-  else
-  {
-    // stop the paddle
-    paddle1DirY = 0;
-  }
-  //paddle1.scale.y += (1 - paddle1.scale.y) * 0.2;
-  //paddle1.scale.z += (1 - paddle1.scale.z) * 0.2;
-  paddle1.position.y += paddle1DirY;
 };
+
+
+  // if (paddle1.position.y < fieldHeight * 0.45) {
+  //
+  //   if (playerPositie < fieldHeight / 2) {
+  //
+  //     paddle1DirY = paddleSpeed * 0.5;
+  //
+  //   } else {
+  //
+  //     paddle1DirY = 0;
+  //
+  //   }
+  //
+  // }
+  //
+  // else if
+  //
+  // (paddle1.position.y > - fieldHeight * 0.45) {
+  //
+  //   if (playerPositie < fieldHeight / 2) {
+  //
+  //     paddle1DirY = - paddleSpeed * 0.5;
+  //
+  //   } else {
+  //
+  //     paddle1DirY = 0;
+  //
+  //   }
+  //
+  // }
+  //
+  // paddle1.position.y += paddle1DirY;
+// };
+
+  // // move left
+  // if (KeyPressed.isDown(KeyPressed.A))
+  // {
+  //   // if paddle is not touching the side of table
+  //   // we move
+  //   if (paddle1.position.y < fieldHeight * 0.45)
+  //   {
+  //     //paddle1DirY = paddleSpeed * 0.5;
+  //     paddle1DirY = paddleSpeed;
+  //   }
+  //   // else we don't move and stretch the paddle
+  //   // to indicate we can't move
+  //   else
+  //   {
+  //     paddle1DirY = 0;
+  //     //paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
+  //   }
+  // }
+  // // move right
+  // else if (KeyPressed.isDown(KeyPressed.D))
+  // {
+  //   // if paddle is not touching the side of table
+  //   // we move
+  //   if (paddle1.position.y > - fieldHeight * 0.45)
+  //   {
+  //     paddle1DirY = - paddleSpeed * 0.5;
+  //   }
+  //   // else we don't move and stretch the paddle
+  //   // to indicate we can't move
+  //   else
+  //   {
+  //     paddle1DirY = 0;
+  //     //paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
+  //   }
+  // }
+  // // else don't move paddle
+  // else
+  // {
+  //   // stop the paddle
+  //   paddle1DirY = 0;
+  // }
+  // //paddle1.scale.y += (1 - paddle1.scale.y) * 0.2;
+  // //paddle1.scale.z += (1 - paddle1.scale.z) * 0.2;
+//   paddle1.position.y += paddle1DirY;
+// };
 
 // Handles paddle collision logic
 const paddlePhysics = () => {
