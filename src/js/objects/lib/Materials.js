@@ -18,7 +18,7 @@ const Materials = {
   planeMaterial() {
     return new THREE.MeshLambertMaterial(
       {
-        color: Colors.black
+        color: Colors.red
       });
   },
   // create the ground's material

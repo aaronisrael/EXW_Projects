@@ -70,6 +70,7 @@ const setup = () => {
 
   // set up all the objects in the scene
   createCamera();
+  tableImg();
   createTable();
   lights();
   audioInit();
@@ -80,6 +81,21 @@ const setup = () => {
   socket.on(`connect`, () => {
     console.log(`Connected: ${socket.id}`);
   });
+};
+
+const tableImg = () => {
+  const loader = new THREE.ImageLoader();
+
+  // load a image resource
+  loader.load(
+    `assets/svg/field.png`,
+    function (image) {
+
+      const canvas = document.createElement(`tafel`);
+      const context = canvas.getContext(`2d`);
+      context.drawImage(image, 100, 100);
+    },
+  );
 };
 
 const audioInit = () => {
@@ -397,9 +413,9 @@ const opponentPaddleMovement = () => {
 const playerPaddleMovement = () => {
 
   if (paddle1.position.y < fieldHeight * 0.45) {
-    if (playerPositie > fieldHeight / 2) {
-      console.log(`de positie is groter dan 100`);
-      console.log(`de paddle moet naar boven`);
+    if (playerPositie < fieldHeight / 2) {
+      // console.log(`de positie is groter dan 100`);
+      // console.log(`de paddle moet naar boven`);
       paddle1DirY = paddleSpeed * 0.5;
     } else {
       paddle1DirY = 0;
@@ -408,9 +424,9 @@ const playerPaddleMovement = () => {
 
   (paddle1.position.y > - fieldHeight * 0.45) {
 
-    if (playerPositie < fieldHeight / 2) {
-      console.log(`de positie is kleiner dan 100`);
-      console.log(`paddle moet naar beneden`);
+    if (playerPositie > fieldHeight / 2) {
+      // console.log(`de positie is kleiner dan 100`);
+      // console.log(`paddle moet naar beneden`);
     //console.log(paddle1DirY);
       paddle1DirY = - paddleSpeed * 0.5;
     } else {
