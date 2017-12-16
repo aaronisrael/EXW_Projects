@@ -84,7 +84,7 @@ h1 {
   font-size: 3rem;
   background-color: transparent;
   margin-top: 12rem;
-  margin-left: 2rem;
+  margin-left: 3rem;
   transition: .5s;
 
   &:hover {
