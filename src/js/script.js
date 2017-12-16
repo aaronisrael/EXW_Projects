@@ -19,7 +19,7 @@ const fieldWidth = 400, fieldHeight = 200;
 // paddle variables
 let paddleWidth, paddleHeight, paddleDepth;
 let paddle1DirY = 0, paddle2DirY = 0;
-const paddleSpeed = 1;
+const paddleSpeed = 2;
 let playerPositie = fieldHeight / 2;
 
 // ball variables
@@ -69,9 +69,9 @@ const setup = () => {
   score2 = 0;
 
   // set up all the objects in the scene
+  tableImg();
   createCamera();
   createTable();
-  tableImg();
   lights();
   audioInit();
 
@@ -96,6 +96,7 @@ const tableImg = () => {
       const canvas = document.createElement(`canvas`);
       const context = canvas.getContext(`2d`);
       context.drawImage(image, 200, 200);
+      console.log(`hallo?`);
     },
   );
 };
@@ -414,27 +415,21 @@ const opponentPaddleMovement = () => {
 // Handles player's paddle movement
 const playerPaddleMovement = () => {
 
-  if (paddle1.position.y < fieldHeight * 0.45) {
-    if (playerPositie < fieldHeight / 2) {
-      // console.log(`de positie is groter dan 100`);
+  console.log(playerPositie);
+
+  if //Moving up, works
+  ((paddle1.position.y < fieldHeight * 0.45) && (paddle1.position.y > - fieldHeight * 0.45)) {
+    if (playerPositie > 50) {
+      // console.log(`de positie is groter dan 50`);
       // console.log(`de paddle moet naar boven`);
       paddle1DirY = paddleSpeed * 0.5;
     } else {
-      paddle1DirY = 0;
-    } }
-  else if
-
-  (paddle1.position.y > - fieldHeight * 0.45) {
-
-    if (playerPositie > fieldHeight / 2) {
-      // console.log(`de positie is kleiner dan 100`);
-      // console.log(`paddle moet naar beneden`);
-    //console.log(paddle1DirY);
-      paddle1DirY = - paddleSpeed * 0.5;
-    } else {
-      paddle1DirY = 0;
+      paddle1DirY = - paddleSpeed * 1;
     }
+  } else {
+    paddle1DirY = 0;
   }
+  paddle1.position.y += paddle1DirY;
 };
 
 
