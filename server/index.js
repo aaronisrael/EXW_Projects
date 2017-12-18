@@ -1,3 +1,4 @@
+const Path = require(`path`);
 require(`dotenv`).load({silent: true});
 
 const {
@@ -60,7 +61,9 @@ server.register(require(`inert`), err => {
     path: `/{param*}`,
     handler: {
       directory: {
-        path: `./server/public/`
+        // path: `./server/public/`
+        path: Path.join(__dirname, `public`),      // [3]
+        listing: true
       }
     }
   });

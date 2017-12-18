@@ -1,5 +1,5 @@
 {
-  "name": "test",
+  "name": "sound-pong",
   "version": "0.1.0",
   "scripts": {
     "development": "npm run clean && nodemon . & NODE_ENV=development webpack --watch",
