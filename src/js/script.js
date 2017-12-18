@@ -83,7 +83,7 @@ const settings = () => {
 };
 
 const waitForPlayer = (game, menu) => {
-  socket = io.connect(`http://192.168.0.240:3000`);
+  socket = io.connect();
   console.log(twoPlayers);
   console.log(`waiting`);
   document.querySelector(`.waiting`).innerHTML = `waiting for player 2`;
