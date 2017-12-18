@@ -135,3 +135,10 @@ span {
   left: 1rem;
   transform: rotate(270deg);
 }
+
+.waiting {
+  position: absolute;
+  margin-top: 11rem;
+  text-align: center;
+  margin-left: -4rem;
+}

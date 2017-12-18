@@ -83,9 +83,10 @@ const settings = () => {
 };
 
 const waitForPlayer = (game, menu) => {
-  socket = io.connect(`http://192.168.0.196:3000`);
+  socket = io.connect(`http://192.168.0.240:3000`);
   console.log(twoPlayers);
   console.log(`waiting`);
+  document.querySelector(`.waiting`).innerHTML = `waiting for player 2`;
   socket.on(`connect`, () => {
     console.log(`Connected: ${socket.id}`);
   });
@@ -107,7 +108,7 @@ const waitForPlayer = (game, menu) => {
   });
 };
 
-const setup = (game, menu, socket) => {
+const setup = (game, menu) => {
   game.style.display = `block`;
   menu.style.display = `none`;
   // update the board to reflect the max score for match win
@@ -122,7 +123,7 @@ const setup = (game, menu, socket) => {
   createTable();
   lights();
 
-  draw(socket);
+  draw();
 };
 
 const createCamera = () => {
@@ -264,13 +265,13 @@ const explodeAnimation = (x, y) => {
   scene.add(this.object);
 };
 
-const draw = socket => {
+const draw = () => {
   updateStars();
   ballPhysics();
   paddlePhysics();
-  player1PaddleMovement(socket);
+  player1PaddleMovement();
   if (twoPlayers) {
-    player2PaddleMovement(socket);
+    player2PaddleMovement();
   } else {
     aiPaddleMovement();
   }
@@ -346,21 +347,26 @@ const ballPhysics = () => {
       ballDirY = - ballSpeed * 2;
     }
 
-    ballPos = [ball.position.x, ball.position.y];
+    ballPos = [ball.position.x, ball.position.y, score1, score2];
 
-    if (ballPosCheck !== ballPos) {
-      ballPosCheck = ballPos;
-      socket.emit(`ballPos`, ballPos);
+    if (twoPlayers) {
+      if (ballPosCheck !== ballPos) {
+        ballPosCheck = ballPos;
+        socket.emit(`ballPos`, ballPos);
+      }
     }
 
   } else {
-    socket.on(`ballPos`, ballPos => {
-      if (ballPosCheck !== ballPos) {
-        ballPosCheck = ballPos;
-        ball.position.x = ballPos[0];
-        ball.position.y = ballPos[1];
-      }
-    });
+    if (twoPlayers) {
+      socket.on(`ballPos`, ballPos => {
+        if (ballPosCheck !== ballPos) {
+          ballPosCheck = ballPos;
+          ball.position.x = ballPos[0];
+          ball.position.y = ballPos[1];
+          document.querySelector(`.scores`).innerHTML = `${ballPos[2]  }-${  ballPos[3]}`;
+        }
+      });
+    }
   }
 };
 
