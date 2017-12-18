@@ -15,7 +15,6 @@ let renderer, scene, camera, pointLight, spotLight;
 
 // field variables
 const fieldWidth = 400, fieldHeight = 200;
-
 // paddle variables
 let paddleWidth, paddleHeight, paddleDepth;
 let paddle1DirY = 0, paddle2DirY = 0;
@@ -93,10 +92,22 @@ const tableImg = () => {
     `assets/svg/field.png`,
     function (image) {
 
-      const canvas = document.createElement(`canvas`);
-      const context = canvas.getContext(`2d`);
-      context.drawImage(image, 200, 200);
-      console.log(`hallo?`);
+      const backgroundMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(2, 2, 0),
+        new THREE.MeshBasicMaterial({map: image})
+      );
+
+      backgroundMesh.material.depthTest = false;
+      backgroundMesh.material.depthWrite = false;
+
+      console.log(backgroundMesh);
+
+      //field.add(backgroundMesh);
+
+      // const canvas = document.createElement(`canvas`);
+      // const context = canvas.getContext(`2d`);
+      // context.drawImage(image, 200, 200);
+      // console.log(`hallo?`);
     },
   );
 };
@@ -417,8 +428,9 @@ const playerPaddleMovement = () => {
 
   console.log(playerPositie);
 
-  if //Moving up, works
-  ((paddle1.position.y < fieldHeight * 0.45) && (paddle1.position.y > - fieldHeight * 0.45)) {
+  if
+  ((paddle1.position.y < fieldHeight * 0.55) && (paddle1.position.y > - fieldHeight * 0.55)) {
+    //console.log(- fieldHeight * 0.55);
     if (playerPositie > 50) {
       // console.log(`de positie is groter dan 50`);
       // console.log(`de paddle moet naar boven`);
@@ -427,7 +439,7 @@ const playerPaddleMovement = () => {
       paddle1DirY = - paddleSpeed * 1;
     }
   } else {
-    paddle1DirY = 0;
+    paddle1DirY = paddleSpeed;
   }
   paddle1.position.y += paddle1DirY;
 };
