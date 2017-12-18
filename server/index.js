@@ -8,7 +8,15 @@ const {
 
 const Server = require(`hapi`).Server;
 
-const server = new Server();
+const server = new Server({
+  connections: {
+    routes: {
+      files: {
+        relativeTo: Path.join(__dirname, `public`)
+      }
+    }
+  }
+});
 
 // server.connection({port: PORT, host: `192.168.0.240`});
 server.connection({port: PORT});
@@ -56,15 +64,56 @@ server.register(require(`inert`), err => {
     throw err;
   }
 
-  server.route({
-    method: `GET`,
-    path: `/{param*}`,
-    handler: {
-      directory: {
-        // path: `./server/public/`
-        path: Path.join(__dirname, `public`),      // [3]
-        listing: true
+  server.route(
+    // [
+    {
+      method: `GET`,
+      path: `/{param*}`,
+      handler: {
+        directory: {
+          path: `.`,
+          redirectToSlash: true,
+          index: true,
+        }
       }
-    }
-  });
+  //   },
+  //   {
+
+  //     method: `GET`,
+  //     path: `/css/{param*}`,
+
+  //     handler: {
+  //       directory: {
+  //         path: `./css/`
+  //       }
+  //     }
+
+  //   },
+
+  //   {
+
+  //     method: `GET`,
+  //     path: `/js/{param*}`,
+
+  //     handler: {
+  //       directory: {
+  //         path: `./js`
+  //       }
+  //     }
+
+  //   },
+
+  //   {
+
+  //     method: `GET`,
+  //     path: `/assets/{param*}`,
+
+  //     handler: {
+  //       directory: {
+  //         path: `./assets`
+  //       }
+  //     }
+  //   }
+  // ]
+    });
 });
