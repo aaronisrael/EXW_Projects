@@ -14,6 +14,9 @@ let renderer, scene, camera, pointLight, spotLight;
 let twoPlayers = false;
 let playerOne = true;
 
+let ballPos = [];
+let ballPosCheck = [];
+
 let socket;
 
 // field variables
@@ -66,6 +69,7 @@ const settings = () => {
      {
         if (radios[i].value === `0`) {
           twoPlayers = false;
+          playerOne = true;
           setup(game, menu);
         }
         if (radios[i].value === `1`) {
@@ -243,7 +247,11 @@ const explodeAnimation = (x, y) => {
     star.z = THREE.Math.randFloatSpread(100);
 
     starsGeometry.vertices.push(star);
-    dirs.push({x: (Math.random() * 10) - (10 / 5), y: (Math.random() * 10) - (movementSpeed / 5), z: (Math.random() * movementSpeed) - (movementSpeed / 5)});
+    dirs.push({
+      x: (Math.random() * 10) - (10 / 5),
+      y: (Math.random() * 10) - (movementSpeed / 5),
+      z: (Math.random() * movementSpeed) - (movementSpeed / 5)
+    });
   }
   //totalObjects = 1000;
 
@@ -291,50 +299,68 @@ const updateStars = () => {
 
 const ballPhysics = () => {
   // if ball goes off the 'left' side (Player's side)
-  if (ball.position.x <= - fieldWidth / 2)
-  {
-    // CPU scores
-    score2 ++;
-    // update scoreboard HTML
-    document.querySelector(`.scores`).innerHTML = `${score1}-${score2}`;
-    // reset ball to center
-    resetBall(2);
-  }
+  if (playerOne) {
+    if (ball.position.x <= - fieldWidth / 2)
+    {
+      // CPU scores
+      score2 ++;
+      // update scoreboard HTML
+      document.querySelector(`.scores`).innerHTML = `${score1}-${score2}`;
+      // reset ball to center
+      resetBall(2);
+    }
 
-  // if ball goes off the 'right' side (CPU's side)
-  if (ball.position.x >= fieldWidth / 2)
-  {
-    // Player scores
-    score1 ++;
-    // update scoreboard HTML
-    document.querySelector(`.scores`).innerHTML = `${score1  }-${  score2}`;
-    // reset ball to center
-    resetBall(1);
-  }
+    // if ball goes off the 'right' side (CPU's side)
+    if (ball.position.x >= fieldWidth / 2)
+    {
+      // Player scores
+      score1 ++;
+      // update scoreboard HTML
+      document.querySelector(`.scores`).innerHTML = `${score1  }-${  score2}`;
+      // reset ball to center
+      resetBall(1);
+    }
 
-  // if ball goes off the top side (side of table)
-  if (ball.position.y <= - fieldHeight / 2)
-  {
-    ballDirY = - ballDirY;
-  }
-  // if ball goes off the bottom side (side of table)
-  if (ball.position.y >= fieldHeight / 2)
-  {
-    ballDirY = - ballDirY;
-  }
+    // if ball goes off the top side (side of table)
+    if (ball.position.y <= - fieldHeight / 2)
+    {
+      ballDirY = - ballDirY;
+    }
+    // if ball goes off the bottom side (side of table)
+    if (ball.position.y >= fieldHeight / 2)
+    {
+      ballDirY = - ballDirY;
+    }
 
-  // update ball position over time
-  ball.position.x += ballDirX * ballSpeed;
-  ball.position.y += ballDirY * ballSpeed;
+    // update ball position over time
+    ball.position.x += ballDirX * ballSpeed;
+    ball.position.y += ballDirY * ballSpeed;
 
-  // limit ball's y-speed to 2x the x-speed
-  // this is so the ball doesn't speed from left to right super fast
-  // keeps game playable for humans
-  if (ballDirY > ballSpeed * 2) {
-    ballDirY = ballSpeed * 2;
-  }
-  else if (ballDirY < - ballSpeed * 2) {
-    ballDirY = - ballSpeed * 2;
+    // limit ball's y-speed to 2x the x-speed
+    // this is so the ball doesn't speed from left to right super fast
+    // keeps game playable for humans
+    if (ballDirY > ballSpeed * 2) {
+      ballDirY = ballSpeed * 2;
+    }
+    else if (ballDirY < - ballSpeed * 2) {
+      ballDirY = - ballSpeed * 2;
+    }
+
+    ballPos = [ball.position.x, ball.position.y];
+
+    if (ballPosCheck !== ballPos) {
+      ballPosCheck = ballPos;
+      socket.emit(`ballPos`, ballPos);
+    }
+
+  } else {
+    socket.on(`ballPos`, ballPos => {
+      if (ballPosCheck !== ballPos) {
+        ballPosCheck = ballPos;
+        ball.position.x = ballPos[0];
+        ball.position.y = ballPos[1];
+      }
+    });
   }
 };
 
@@ -410,7 +436,6 @@ const player2PaddleMovement = () => {
       if (paddle1DirYPrev !== movement) {
         paddle1DirYPrev = movement;
         paddle1.position.y = paddle1DirYPrev;
-        console.log(movement);
       }
     });
     if (paddle2DirYPrev !== paddle2.position.y) {
@@ -422,7 +447,7 @@ const player2PaddleMovement = () => {
 
 // Handles player's paddle movement
 const player1PaddleMovement = () => {
-  if (playerOne) {
+  if (playerOne || !twoPlayers) {
     // move left
     if (KeyPressed.isDown(KeyPressed.UP)) {
     // if paddle is not touching the side of table
@@ -459,16 +484,17 @@ const player1PaddleMovement = () => {
     paddle1.scale.y += (1 - paddle1.scale.y) * 0.2;
     paddle1.scale.z += (1 - paddle1.scale.z) * 0.2;
     paddle1.position.y += paddle1DirY;
-    socket.on(`playerTwo`, movement => {
-      if (paddle2DirYPrev !== movement) {
-        paddle2DirYPrev = movement;
-        paddle2.position.y = paddle2DirYPrev;
-        console.log(movement);
+    if (twoPlayers) {
+      socket.on(`playerTwo`, movement => {
+        if (paddle2DirYPrev !== movement) {
+          paddle2DirYPrev = movement;
+          paddle2.position.y = paddle2DirYPrev;
+        }
+      });
+      if (paddle1DirYPrev !== paddle1.position.y) {
+        paddle1DirYPrev = paddle1.position.y;
+        socket.emit(`playerOne`, paddle1DirYPrev);
       }
-    });
-    if (paddle1DirYPrev !== paddle1.position.y) {
-      paddle1DirYPrev = paddle1.position.y;
-      socket.emit(`playerOne`, paddle1DirYPrev);
     }
   }
 };

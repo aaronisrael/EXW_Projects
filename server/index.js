@@ -35,6 +35,9 @@ io.on(`connection`, socket => {
   socket.on(`playerTwo`, movement => {
     io.sockets.emit(`playerTwo`, movement);
   });
+  socket.on(`ballPos`, ballPos => {
+    io.sockets.emit(`ballPos`, ballPos);
+  });
 });
 
 server.start(err => {
