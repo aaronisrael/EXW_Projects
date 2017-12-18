@@ -1,7 +1,7 @@
 require(`dotenv`).load({silent: true});
 
 const {
-  PORT = 3000,
+  PORT = 8080,
   URL = `http://192.168.0.240`
 } = process.env;
 
