@@ -1,0 +1,10 @@
+/* font converted using font-converter.net. thank you! */
+@font-face {
+  font-family: 'Bit5x3';
+
+  src:
+    url(bit5x3.woff) format('woff'),
+    url(bit5x3.woff2) format('woff2'); /* Modern Browsers */
+  font-weight: normal;
+  font-style: normal;
+}
