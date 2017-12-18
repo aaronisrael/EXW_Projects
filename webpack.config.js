@@ -13,7 +13,7 @@ const {ifProduction} = getIfUtils(process.env.NODE_ENV);
 const extractCSS = new ExtractTextWebpackPlugin(`css/style.css`);
 
 // change for production build on different server path
-const publicPath = `http://nameless-citadel-81819.herokuapp.com/`;
+const publicPath = `/`;
 
 const copy = new CopyWebpackPlugin([{
   from: `./src/assets`,
