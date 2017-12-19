@@ -14,6 +14,8 @@ let renderer, scene, camera, pointLight, spotLight;
 let twoPlayers = false;
 let playerOne = true;
 
+let timeleft = 5;
+
 let ballPos = [];
 let ballPosCheck = [];
 
@@ -60,6 +62,7 @@ const settings = () => {
   const menu = document.querySelector(`.settings`);
   const game = document.querySelector(`.Pong`);
   const button = document.querySelector(`.settingSubmit`);
+  document.querySelector(`.countdowntimer`).innerHTML = timeleft;
   game.style.display = `none`;
   const radios = document.getElementsByName(`players`);
   button.addEventListener(`click`, () => {
@@ -83,7 +86,7 @@ const settings = () => {
 };
 
 const waitForPlayer = (game, menu) => {
-  socket = io.connect(`http://192.168.0.240:3000`);
+  socket = io.connect();
   console.log(twoPlayers);
   console.log(`waiting`);
   document.querySelector(`.waiting`).innerHTML = `waiting for player 2`;
@@ -108,6 +111,19 @@ const waitForPlayer = (game, menu) => {
   });
 };
 
+const countdown = () => {
+  const downloadTimer = setInterval(function() {
+    timeleft --;
+    console.log(timeleft);
+    document.querySelector(`.countdowntimer`).innerHTML = timeleft;
+    if (timeleft <= 0) {
+      document.querySelector(`.countdowntimer`).innerHTML = ``;
+      clearInterval(downloadTimer);
+      draw();
+    }
+  }, 1000);
+};
+
 const setup = (game, menu) => {
   game.style.display = `block`;
   menu.style.display = `none`;
@@ -123,7 +139,7 @@ const setup = (game, menu) => {
   createTable();
   lights();
 
-  draw();
+  countdown();
 };
 
 const createCamera = () => {

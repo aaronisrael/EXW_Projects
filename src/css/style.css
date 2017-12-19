@@ -142,3 +142,10 @@ span {
   text-align: center;
   margin-left: -4rem;
 }
+
+.countdowntimer {
+  font-family: 'bit5x3';
+  margin-top: 25rem;
+  position: absolute;
+  font-size: 20rem;
+}
