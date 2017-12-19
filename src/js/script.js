@@ -456,7 +456,6 @@ const playerPaddleMovement = () => {
   (paddle1.position.y > - fieldHeight * 0.55) {
     paddle1.position.y --;
   }
-  //paddle1.position.y += paddle1DirY;
 };
 
 
