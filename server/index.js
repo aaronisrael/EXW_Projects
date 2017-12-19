@@ -1,3 +1,4 @@
+const Path = require(`path`);
 require(`dotenv`).load({silent: true});
 
 const {
@@ -7,7 +8,15 @@ const {
 
 const Server = require(`hapi`).Server;
 
-const server = new Server();
+const server = new Server({
+  connections: {
+    routes: {
+      files: {
+        relativeTo: Path.join(__dirname, `public`)
+      }
+    }
+  }
+});
 
 server.connection({port: PORT});
 
@@ -59,7 +68,9 @@ server.register(require(`inert`), err => {
     path: `/{param*}`,
     handler: {
       directory: {
-        path: `./server/public/`
+        path: `.`,
+        redirectToSlash: true,
+        index: true,
       }
     }
   });
