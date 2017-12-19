@@ -34,6 +34,12 @@ const Materials = {
       {
         color: Colors.white
       });
+  },
+  lineMaterial() {
+    return new THREE.LineBasicMaterial(
+      {
+        color: Colors.white
+      });
   }
 };
 

@@ -26,12 +26,14 @@ let colorPaddle1 = true, colorPaddle2 = true;
 
 // field variables
 const fieldWidth = 400, fieldHeight = 200;
-
 // paddle variables
 let paddleWidth, paddleHeight, paddleDepth;
-let paddle1DirY = 0, paddle2DirY = 0;
+const paddle1DirY = 0;
+let paddle2DirY = 0;
+
 let paddle1DirYPrev = 0, paddle2DirYPrev = 0;
-const paddleSpeed = 3;
+const paddleSpeed = 5;
+let playerPositie = fieldHeight / 2;
 
 // ball variables
 let ball, paddle1, paddle2;
@@ -40,12 +42,10 @@ const ballSpeed = 2;
 
 // game-related variables
 let score1 = 0, score2 = 0;
-const maxScore = 7;
+const maxScore = 15;
 
 // set opponent difficulty
-const difficulty = 0.1;
-
-// const socket = io.connect(`http://192.168.0.240:3000`);
+const difficulty = 0.15;
 
 // particle variables
 const movementSpeed = 20;
@@ -56,6 +56,16 @@ const sizeRandomness = 40000;
 /////////////////////////////////
 const parts = [];
 const dirs = [];
+
+navigator.getUserMedia  = navigator.getUserMedia ||
+                          navigator.webkitGetUserMedia ||
+                          navigator.mozGetUserMedia ||
+                          navigator.msGetUserMedia;
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioContext = new AudioContext();
+let audioStreamSource = null,
+  analyserNode;
 
 // ------------------------------------- //
 // ------- GAME FUNCTIONS -------------- //
@@ -91,7 +101,6 @@ const settings = () => {
 const waitForPlayer = (game, menu) => {
   socket = io.connect();
   console.log(twoPlayers);
-  console.log(`waiting`);
   document.querySelector(`.waiting`).innerHTML = `waiting for player 2`;
   socket.on(`connect`, () => {
     console.log(`Connected: ${socket.id}`);
@@ -115,13 +124,12 @@ const waitForPlayer = (game, menu) => {
 };
 
 const countdown = () => {
-  const downloadTimer = setInterval(function() {
+  const countdown = setInterval(() => {
     timeleft --;
-    console.log(timeleft);
     document.querySelector(`.countdowntimer`).innerHTML = timeleft;
     if (timeleft <= 0) {
       document.querySelector(`.countdowntimer`).innerHTML = ``;
-      clearInterval(downloadTimer);
+      clearInterval(countdown);
       draw();
     }
   }, 1000);
@@ -141,8 +149,71 @@ const setup = (game, menu) => {
   createCamera();
   createTable();
   lights();
+  audioInit();
 
   countdown();
+};
+
+const audioInit = () => {
+
+  if (navigator.getUserMedia) {
+    navigator.getUserMedia({
+      audio: true
+    },
+    gotAudioStream,
+    function() {
+      alert(`You need to accept the microphone to play`);
+    });
+  } else {
+    alert(`Sorry your browser isn't supported, try Chrome.`);
+  }
+};
+
+const gotAudioStream = stream => {
+  console.log(`gotAudioStream`);
+  analyserNode = audioContext.createAnalyser();
+  analyserNode.fftSize = 2048;
+
+    // Create an AudioNode from the stream.
+  audioStreamSource = audioContext.createMediaStreamSource(stream);
+  audioStreamSource.connect(analyserNode);
+
+    // Connect it to the destination to hear yourself (or any other node for processing!)
+    //analyserNode.connect(audioContext.destination);
+  updateAudio();
+};
+
+const updateAudio = () => {
+    // Schedule the next update
+  requestAnimationFrame(updateAudio);
+
+    // Get the new frequency data
+    //console.log(frequencyData);
+  const frequencyData = new Uint8Array(analyserNode.frequencyBinCount);
+  //console.log(analyserNode, frequencyData);
+  analyserNode.getByteFrequencyData(frequencyData);
+
+  let average = 0;
+  const frequencyLength = frequencyData.length;
+  let frequencyActiveCount = 0;
+
+  for (let i = 0;i < frequencyLength;i ++) {
+    const value = frequencyData[i] / 256;
+
+          // Only save count value != 0 to have a decent average for bad microphones
+    if (frequencyData[i] !== 0) {
+      frequencyActiveCount ++;
+      //console.log(frequencyActiveCount);
+      average += value;
+    }
+  }
+
+  average = average / frequencyActiveCount;
+
+  // HIER MOET JE DE PADDLE AANPASSEN
+  const playerPosition = Math.round(average * fieldHeight);
+  playerPositie = playerPosition;
+  // playerPosition = paddle1DirY;
 };
 
 const createCamera = () => {
@@ -179,6 +250,7 @@ const createCamera = () => {
 
 const createTable = () => {
   // set up the playing surface plane
+
   const tableWidth = fieldWidth,
     planeHeight = fieldHeight,
     planeQuality = 10;
@@ -230,6 +302,31 @@ const createTable = () => {
     // set ground to arbitrary z position to best show off shadowing
 
   scene.add(ground);
+
+  // SETING UP LINES
+
+  const material = new THREE.LineBasicMaterial({color: 0xffffff, linewidth: 10});
+  const dashMaterial = new THREE.LineDashedMaterial({color: 0xffffff, linewidth: 30, scale: 2, dashSize: 3, gapSize: 1});
+
+  const dash = new THREE.Geometry();
+  dash.vertices.push(new THREE.Vector3(0, 100, 0));
+  dash.vertices.push(new THREE.Vector3(0, - 100, 0));
+
+  const geometry = new THREE.Geometry();
+  geometry.vertices.push(new THREE.Vector3(- 185, 100, 0));
+  geometry.vertices.push(new THREE.Vector3(185, 100, 0));
+
+  const geometry2 = new THREE.Geometry();
+  geometry2.vertices.push(new THREE.Vector3(- 185, - 100, 0));
+  geometry2.vertices.push(new THREE.Vector3(185, - 100, 0));
+
+  const upperLine = new THREE.Line(geometry, material);
+  const lowerLine = new THREE.Line(geometry2, material);
+  const dashedLine = new THREE.Line(dash, dashMaterial);
+
+  scene.add(dashedLine);
+  scene.add(upperLine);
+  scene.add(lowerLine);
 };
 
 const lights = () => {
@@ -296,7 +393,24 @@ const draw = () => {
 
   renderer.render(scene, camera);
 
-  requestAnimationFrame(draw);
+  if ((score1 || score2) < maxScore) {
+    requestAnimationFrame(draw);
+  } else {
+    let winner = ``;
+    if (score1 < score2)
+      winner = `player 2`;
+    else
+      winner = `player 1`;
+    document.querySelector(`.countdowntimer`).innerHTML = `${winner} wins!`;
+    let timeEnd = 5;
+    const countdown = setInterval(() => {
+      timeEnd --;
+      if (timeEnd <= 0) {
+        location.reload();
+        clearInterval(countdown);
+      }
+    }, 1000);
+  }
 };
 
 const checkscore = () => {
@@ -319,6 +433,7 @@ const updateStars = () => {
       }
 
       this.object.geometry.verticesNeedUpdate = true;
+      this.object.geometry.__dirtyVertices = true;
     }
   }
 };
@@ -351,11 +466,13 @@ const ballPhysics = () => {
     if (ball.position.y <= - fieldHeight / 2)
     {
       ballDirY = - ballDirY;
+
     }
     // if ball goes off the bottom side (side of table)
     if (ball.position.y >= fieldHeight / 2)
     {
       ballDirY = - ballDirY;
+
     }
 
     // update ball position over time
@@ -427,40 +544,24 @@ const aiPaddleMovement = () => {
 
 const player2PaddleMovement = () => {
   if (!playerOne) {
-    if (KeyPressed.isDown(KeyPressed.UP)) {
-    // if paddle is not touching the side of table
-    // we move
-      if (paddle2.position.y < fieldHeight * 0.45) {
-        paddle2DirY = paddleSpeed * 0.5;
+    if ((paddle2.position.y < fieldHeight * 0.55) && (paddle2.position.y > - fieldHeight * 0.55)) {
+      //console.log(- fieldHeight * 0.55);
+      if (playerPositie > 50 || KeyPressed.isDown(KeyPressed.UP)) {
+        // console.log(`de positie is groter dan 50`);
+        // console.log(`de paddle moet naar boven`);
+        paddle2.position.y ++;
+          //paddle2DirY = paddleSpeed * 0.5;
+      } else {
+          //paddle2DirY = - paddleSpeed * 1;
+        paddle2.position.y --;
       }
-    // else we don't move and stretch the paddle
-    // to indicate we can't move
-      else {
-        paddle2DirY = 0;
-        paddle2.scale.z += (10 - paddle2.scale.z) * 0.2;
-      }
+    } else if (paddle2.position.y < fieldHeight * 0.55) {
+
+      paddle2.position.y ++;
+    } else if
+      (paddle2.position.y > - fieldHeight * 0.55) {
+      paddle2.position.y --;
     }
-  // move right
-    else if (KeyPressed.isDown(KeyPressed.DOWN)) {
-    // if paddle is not touching the side of table
-    // we move
-      if (paddle2.position.y > - fieldHeight * 0.45) {
-        paddle2DirY = - paddleSpeed * 0.5;
-      }
-    // else we don't move and stretch the paddle
-    // to indicate we can't move
-      else {
-        paddle2DirY = 0;
-        paddle2.scale.z += (10 - paddle2.scale.z) * 0.2;
-      }
-    }
-  // else don't move paddle
-    else {
-    // stop the paddle
-      paddle2DirY = 0;
-    }
-    paddle2.scale.y += (1 - paddle2.scale.y) * 0.2;
-    paddle2.scale.z += (1 - paddle2.scale.z) * 0.2;
     paddle2.position.y += paddle2DirY;
     socket.on(`playerOne`, movement => {
       if (paddle1DirYPrev !== movement) {
@@ -482,41 +583,24 @@ const player2PaddleMovement = () => {
 // Handles player's paddle movement
 const player1PaddleMovement = () => {
   if (playerOne || !twoPlayers) {
-    // move left
-    if (KeyPressed.isDown(KeyPressed.UP)) {
-    // if paddle is not touching the side of table
-    // we move
-      if (paddle1.position.y < fieldHeight * 0.45) {
-        paddle1DirY = paddleSpeed * 0.5;
+    if ((paddle1.position.y < fieldHeight * 0.55) && (paddle1.position.y > - fieldHeight * 0.55)) {
+    //console.log(- fieldHeight * 0.55);
+      if (playerPositie > 50 || KeyPressed.isDown(KeyPressed.UP)) {
+      // console.log(`de positie is groter dan 50`);
+      // console.log(`de paddle moet naar boven`);
+        paddle1.position.y ++;
+        //paddle1DirY = paddleSpeed * 0.5;
+      } else {
+        //paddle1DirY = - paddleSpeed * 1;
+        paddle1.position.y --;
       }
-    // else we don't move and stretch the paddle
-    // to indicate we can't move
-      else {
-        paddle1DirY = 0;
-        paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
-      }
+    } else if (paddle1.position.y < fieldHeight * 0.55) {
+
+      paddle1.position.y ++;
+    } else if
+    (paddle1.position.y > - fieldHeight * 0.55) {
+      paddle1.position.y --;
     }
-  // move right
-    else if (KeyPressed.isDown(KeyPressed.DOWN)) {
-    // if paddle is not touching the side of table
-    // we move
-      if (paddle1.position.y > - fieldHeight * 0.45) {
-        paddle1DirY = - paddleSpeed * 0.5;
-      }
-    // else we don't move and stretch the paddle
-    // to indicate we can't move
-      else {
-        paddle1DirY = 0;
-        paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
-      }
-    }
-  // else don't move paddle
-    else {
-    // stop the paddle
-      paddle1DirY = 0;
-    }
-    paddle1.scale.y += (1 - paddle1.scale.y) * 0.2;
-    paddle1.scale.z += (1 - paddle1.scale.z) * 0.2;
     paddle1.position.y += paddle1DirY;
     if (twoPlayers) {
       socket.on(`playerTwo`, movement => {
@@ -541,56 +625,45 @@ const player1PaddleMovement = () => {
 const paddlePhysics = () => {
   // PLAYER PADDLE LOGIC
 
-  // if ball is aligned with paddle1 on x plane
-  // remember the position is the CENTER of the object
-  // we only check between the front and the middle of the paddle (one-way collision)
   if (ball.position.x <= paddle1.position.x + paddleWidth
   &&  ball.position.x >= paddle1.position.x)
   {
-    // and if ball is aligned with paddle1 on y plane
+
     if (ball.position.y <= paddle1.position.y + paddleHeight / 2
     &&  ball.position.y >= paddle1.position.y - paddleHeight / 2)
     {
-      // and if ball is travelling towards player (-ve direction)
       if (ballDirX < 0)
       {
-        // stretch the paddle to indicate a hit
-        // paddle1.scale.y = 15;
         // switch direction of ball travel to create bounce
         ballDirX = - ballDirX;
-        //explodeAnimation();
-        if (score1 + score2 >= 2)
+
+        if (score1 + score2 >= 2) {
+          parts.pop();
           parts.push(new explodeAnimation(ball.position.x, ball.position.y, Math.random(sizeRandomness), Math.random(sizeRandomness)));
-        // we impact ball angle when hitting it
-        // this is not realistic physics, just spices up the gameplay
-        // allows you to 'slice' the ball to beat the opponent
+        }
+
         ballDirY -= paddle1DirY * 0.7;
       }
     }
   }
 
   // OPPONENT PADDLE LOGIC
-
-  // if ball is aligned with paddle2 on x plane
-  // remember the position is the CENTER of the object
-  // we only check between the front and the middle of the paddle (one-way collision)
   if (ball.position.x <= paddle2.position.x + paddleWidth
   &&  ball.position.x >= paddle2.position.x)
   {
-    // and if ball is aligned with paddle2 on y plane
+
     if (ball.position.y <= paddle2.position.y + paddleHeight / 2
     &&  ball.position.y >= paddle2.position.y - paddleHeight / 2)
     {
-      // and if ball is travelling towards opponent (+ve direction)
+
       if (ballDirX > 0)
       {
-        // stretch the paddle to indicate a hit
-        //paddle2.scale.y = 15;
-        // switch direction of ball travel to create bounce
+
         ballDirX = - ballDirX;
-        //explodeAnimation();
-        if (score1 + score2 >= 2)
-          parts.push(new explodeAnimation(ball.position.x, ball.position.y));
+        if (score1 + score2 >= 2) {
+          parts.pop();
+          parts.push(new explodeAnimation(ball.position.x, ball.position.y, Math.random(sizeRandomness), Math.random(sizeRandomness)));
+        }
         // we impact ball angle when hitting it
         // this is not realistic physics, just spices up the gameplay
         // allows you to 'slice' the ball to beat the opponent
