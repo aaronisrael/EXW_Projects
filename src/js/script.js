@@ -85,31 +85,14 @@ const setup = () => {
 
 //Laden van het veld
 const tableImg = () => {
-  const loader = new THREE.ImageLoader();
-
-  // load a image resource
-  loader.load(
-    `assets/svg/field.png`,
-    function (image) {
-
-      const backgroundMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(2, 2, 0),
-        new THREE.MeshBasicMaterial({map: image})
-      );
-
-      backgroundMesh.material.depthTest = false;
-      backgroundMesh.material.depthWrite = false;
-
-      console.log(backgroundMesh);
-
-      //field.add(backgroundMesh);
-
-      // const canvas = document.createElement(`canvas`);
-      // const context = canvas.getContext(`2d`);
-      // context.drawImage(image, 200, 200);
-      // console.log(`hallo?`);
-    },
-  );
+  // const material = new THREE.LineBasicMaterial({color: 0x0000ff});
+  // const geometry = new THREE.Geometry();
+  // geometry.vertices.push(new THREE.Vector3(- 10, 0, 0));
+  // geometry.vertices.push(new THREE.Vector3(0, 10, 0));
+  // geometry.vertices.push(new THREE.Vector3(10, 0, 0));
+  //
+  // const line = new THREE.Line(geometry, material);
+  // console.log(line);
 };
 
 const audioInit = () => {
@@ -208,6 +191,7 @@ const createCamera = () => {
 
 const createTable = () => {
   // set up the playing surface plane
+
   const tableWidth = fieldWidth,
     planeHeight = fieldHeight,
     planeQuality = 10;
@@ -259,6 +243,31 @@ const createTable = () => {
     // set ground to arbitrary z position to best show off shadowing
 
   scene.add(ground);
+
+  // SETING UP LINES
+
+  const material = new THREE.LineBasicMaterial({color: 0xffffff, linewidth: 1001000});
+  const dashMaterial = new THREE.LineDashedMaterial({color: 0xffffff, linewidth: 1, scale: 1, dashSize: 3, gapSize: 1});
+
+  const dash = new THREE.Geometry();
+  dash.vertices.push(new THREE.Vector3(0, 100, 0));
+  dash.vertices.push(new THREE.Vector3(0, - 100, 0));
+
+  const geometry = new THREE.Geometry();
+  geometry.vertices.push(new THREE.Vector3(- 185, 100, 0));
+  geometry.vertices.push(new THREE.Vector3(185, 100, 0));
+
+  const geometry2 = new THREE.Geometry();
+  geometry2.vertices.push(new THREE.Vector3(- 185, - 100, 0));
+  geometry2.vertices.push(new THREE.Vector3(185, - 100, 0));
+
+  const upperLine = new THREE.Line(geometry, material);
+  const lowerLine = new THREE.Line(geometry2, material);
+  const dashedLine = new THREE.Line(dash, dashMaterial);
+
+  scene.add(dashedLine);
+  scene.add(upperLine);
+  scene.add(lowerLine);
 };
 
 const lights = () => {
@@ -426,7 +435,7 @@ const opponentPaddleMovement = () => {
 // Handles player's paddle movement
 const playerPaddleMovement = () => {
 
-  console.log(playerPositie);
+  //console.log(paddle1.position.y)
 
   if
   ((paddle1.position.y < fieldHeight * 0.55) && (paddle1.position.y > - fieldHeight * 0.55)) {
