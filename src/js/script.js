@@ -2,6 +2,7 @@ const THREE = require(`three`);
 const io = require(`socket.io-client`);
 
 import Colors from './objects/lib/Colors';
+import FluoColors from './objects/lib/FluoColors';
 import KeyPressed from './objects/lib/KeyPressed';
 import Paddle from './objects/Paddle';
 import Materials from './objects/lib/Materials';
@@ -20,6 +21,8 @@ let ballPos = [];
 let ballPosCheck = [];
 
 let socket;
+
+let colorPaddle1 = true, colorPaddle2 = true;
 
 // field variables
 const fieldWidth = 400, fieldHeight = 200;
@@ -271,8 +274,7 @@ const explodeAnimation = (x, y) => {
     });
   }
   //totalObjects = 1000;
-
-  const starsMaterial = new THREE.PointsMaterial({size: 1, color: 0xffffff, opacity: 1});
+  const starsMaterial = new THREE.PointsMaterial({size: 1, color: FluoColors[Math.floor(Math.random() * (15 - 0 + 1)) + 0], opacity: 1});
   const starField = new THREE.Points(starsGeometry, starsMaterial);
 
   this.object = starField;
@@ -282,8 +284,8 @@ const explodeAnimation = (x, y) => {
 };
 
 const draw = () => {
-  updateStars();
   ballPhysics();
+  checkscore();
   paddlePhysics();
   player1PaddleMovement();
   if (twoPlayers) {
@@ -295,6 +297,13 @@ const draw = () => {
   renderer.render(scene, camera);
 
   requestAnimationFrame(draw);
+};
+
+const checkscore = () => {
+
+  if (score1 + score2 >= 2) {
+    updateStars();
+  }
 };
 
 const updateStars = () => {
@@ -410,11 +419,10 @@ const aiPaddleMovement = () => {
       paddle2.position.y -= paddleSpeed;
     }
   }
-  // We lerp the scale back to 1
-  // this is done because we stretch the paddle at some points
-  // stretching is done when paddle touches side of table and when paddle hits ball
-  // by doing this here, we ensure paddle always comes back to default size
-  // paddle2.scale.y += (1 - paddle2.scale.y) * 0.2;
+  if (score1 + score2 >= Math.floor(Math.random() * (15 - 4 + 1)) + 4 && colorPaddle2) {
+    colorPaddle2 = false;
+    paddle2.material.color.setHex(FluoColors[Math.floor(Math.random() * (15 - 0 + 1)) + 0]);
+  }
 };
 
 const player2PaddleMovement = () => {
@@ -463,6 +471,10 @@ const player2PaddleMovement = () => {
     if (paddle2DirYPrev !== paddle2.position.y) {
       paddle2DirYPrev = paddle2.position.y;
       socket.emit(`playerTwo`, paddle2DirYPrev);
+    }
+    if (score1 + score2 >= Math.floor(Math.random() * (15 - 4 + 1)) + 4 && colorPaddle2) {
+      colorPaddle2 = false;
+      paddle2.material.color.setHex(FluoColors[Math.floor(Math.random() * (15 - 0 + 1)) + 0]);
     }
   }
 };
@@ -518,6 +530,10 @@ const player1PaddleMovement = () => {
         socket.emit(`playerOne`, paddle1DirYPrev);
       }
     }
+    if (score1 + score2 >= Math.floor(Math.random() * (15 - 4 + 1)) + 4 && colorPaddle1) {
+      colorPaddle1 = false;
+      paddle1.material.color.setHex(FluoColors[Math.floor(Math.random() * (15 - 0 + 1)) + 0]);
+    }
   }
 };
 
@@ -543,7 +559,8 @@ const paddlePhysics = () => {
         // switch direction of ball travel to create bounce
         ballDirX = - ballDirX;
         //explodeAnimation();
-        parts.push(new explodeAnimation(ball.position.x, ball.position.y, Math.random(sizeRandomness), Math.random(sizeRandomness)));
+        if (score1 + score2 >= 2)
+          parts.push(new explodeAnimation(ball.position.x, ball.position.y, Math.random(sizeRandomness), Math.random(sizeRandomness)));
         // we impact ball angle when hitting it
         // this is not realistic physics, just spices up the gameplay
         // allows you to 'slice' the ball to beat the opponent
@@ -572,7 +589,8 @@ const paddlePhysics = () => {
         // switch direction of ball travel to create bounce
         ballDirX = - ballDirX;
         //explodeAnimation();
-        parts.push(new explodeAnimation(ball.position.x, ball.position.y));
+        if (score1 + score2 >= 2)
+          parts.push(new explodeAnimation(ball.position.x, ball.position.y));
         // we impact ball angle when hitting it
         // this is not realistic physics, just spices up the gameplay
         // allows you to 'slice' the ball to beat the opponent
