@@ -31,7 +31,7 @@ let score1 = 0, score2 = 0;
 const maxScore = 7;
 
 // set opponent difficulty
-const difficulty = 0.1;
+const difficulty = 0.2;
 
 
 // particle variables
@@ -53,7 +53,6 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioContext = new AudioContext();
 let audioStreamSource = null,
   analyserNode;
-//const audioStreamSource = null;
 
 // ------------------------------------- //
 // ------- GAME FUNCTIONS -------------- //
@@ -246,8 +245,8 @@ const createTable = () => {
 
   // SETING UP LINES
 
-  const material = new THREE.LineBasicMaterial({color: 0xffffff, linewidth: 1001000});
-  const dashMaterial = new THREE.LineDashedMaterial({color: 0xffffff, linewidth: 1, scale: 1, dashSize: 3, gapSize: 1});
+  const material = new THREE.LineBasicMaterial({color: 0xffffff, linewidth: 10});
+  const dashMaterial = new THREE.LineDashedMaterial({color: 0xffffff, linewidth: 30, scale: 2, dashSize: 3, gapSize: 1});
 
   const dash = new THREE.Geometry();
   dash.vertices.push(new THREE.Vector3(0, 100, 0));
@@ -443,14 +442,21 @@ const playerPaddleMovement = () => {
     if (playerPositie > 50) {
       // console.log(`de positie is groter dan 50`);
       // console.log(`de paddle moet naar boven`);
-      paddle1DirY = paddleSpeed * 0.5;
+      paddle1.position.y ++;
+      //paddle1DirY = paddleSpeed * 0.5;
     } else {
-      paddle1DirY = - paddleSpeed * 1;
+      //paddle1DirY = - paddleSpeed * 1;
+      paddle1.position.y --;
     }
-  } else {
-    paddle1DirY = paddleSpeed;
+  } else if
+  (paddle1.position.y < fieldHeight * 0.55) {
+
+    paddle1.position.y ++;
+  } else if
+  (paddle1.position.y > - fieldHeight * 0.55) {
+    paddle1.position.y --;
   }
-  paddle1.position.y += paddle1DirY;
+  //paddle1.position.y += paddle1DirY;
 };
 
 
